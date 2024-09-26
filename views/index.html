@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi página Express</title>
+  <script>
+    async function fetchData() {
+      try {
+        const response = await fetch('/data');
+        const data = await response.json();
+        
+        const resultContainer = document.getElementById('result');
+        resultContainer.innerHTML = ''; // Limpiar el contenido previo
+
+        data.forEach(item => {
+          const div = document.createElement('div');
+          div.textContent = `id_usuario: ${item.id_usuario}, Nombre: ${item.nombre}`;
+          resultContainer.appendChild(div);
+        });
+
+        // Mostrar el botón "Volver"
+        document.getElementById('backButton').style.display = 'block';
+      } catch (error) {
+        console.error('Error al obtener datos:', error);
+      }
+    }
+
+    function goBack() {
+      const resultContainer = document.getElementById('result');
+      resultContainer.innerHTML = ''; // Limpiar el contenido
+      document.getElementById('backButton').style.display = 'none'; // Ocultar botón "Volver"
+    }
+  </script>
+</head>
+<body>
+  <h1>CAFETERIA</h1>
+  <p>Aqui estan las consultas.</p>
+  <button onclick="fetchData()">Consulta1: Select * From usario </button>
+  
+  <div id="result"></div> <!-- Contenedor para mostrar los datos -->
+  
+  <!-- Botón "Volver", inicialmente oculto -->
+  <button id="backButton" onclick="goBack()" style="display:none;">Volver</button>
+</body>
+</html>
