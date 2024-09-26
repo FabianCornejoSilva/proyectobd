@@ -7,10 +7,9 @@ const port = 3000;
 
 // Configuración de la conexión a PostgreSQL
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL, // Usamos la variable de entorno para la URL
+    connectionString: process.env.DATABASE_URL, 
 });
 
-// Middleware para servir archivos estáticos y parsear JSON
 app.use(express.static('public'));
 app.use(express.json());
 
@@ -19,7 +18,7 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html');
 });
 
-// Ruta para obtener datos desde la base de datos
+
 
 app.get('/data1', async (req, res) => {
   try {
@@ -30,9 +29,6 @@ app.get('/data1', async (req, res) => {
     res.status(500).send('Error al obtener datos');
   }
 });
-
-
-
 
 app.get('/data2', async (req, res) => {
   try {
