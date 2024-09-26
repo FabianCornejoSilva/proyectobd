@@ -20,7 +20,8 @@ app.get('/', (req, res) => {
 });
 
 // Ruta para obtener datos desde la base de datos
-app.get('/data', async (req, res) => {
+
+app.get('/data1', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM usuario');
     res.json(result.rows);
@@ -29,6 +30,30 @@ app.get('/data', async (req, res) => {
     res.status(500).send('Error al obtener datos');
   }
 });
+
+
+
+
+app.get('/data2', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT usuario.nombre, usuario.correo, pedido.estado_pedido, pedido.fecha_pedido FROM usuario JOIN pedido ON usuario.id_usuario = pedido.id_usuario');
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error al obtener datos');
+  }
+});
+
+app.get('/data3', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT producto.descripcion, producto.precio, categoria.nombre_categoria FROM producto JOIN categoria ON producto.id_categoria = categoria.id_categoria;');
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error al obtener datos');
+  }
+});
+
 
 // Inicia el servidor
 app.listen(port, () => {
