@@ -6,22 +6,22 @@
   <title>Mi página Express</title>
   <style>
     button {
-      display: block; /* Cambia a bloque para apilar los botones uno debajo del otro */
-      margin-bottom: 10px; /* Espacio entre los botones */
+      display: block; 
+      margin-bottom: 10px; 
     }
     .button-container {
       display: flex;
       justify-content: flex-start;
       align-items: center;
-      margin-bottom: 10px; /* Espacio entre las filas de botones */
+      margin-bottom: 10px; 
     }
     a {
-      margin-left: 10px; /* Espacio entre el botón y el enlace */
-      text-decoration: none; /* Eliminar subrayado del enlace */
-      color: blue; /* Color del enlace */
+      margin-left: 10px; 
+      text-decoration: none; 
+      color: blue; 
     }
     a:hover {
-      text-decoration: underline; /* Subrayar al pasar el mouse */
+      text-decoration: underline; 
     }
   </style>
   <script>
@@ -97,7 +97,7 @@
   <h1>CAFETERIA</h1>
   <p>Aquí están las consultas.</p>
 
-  <!-- Botones para ejecutar las consultas -->
+  
   <div class="button-container">
     <button onclick="consulta1()">Consulta1: Select * From usuario</button>
     <a href="/data1" target="_blank">Ir a /data1</a>
@@ -111,7 +111,6 @@
     <a href="/data3" target="_blank">Ir a /data3</a>
   </div>
 
-  <!-- Contenedor para mostrar los resultados -->
   <div id="result"></div>
 
   <button id="backButton" onclick="goBack()" style="display:none;">Volver</button>
