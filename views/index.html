@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi página Express</title>
+  <style>
+    button {
+      display: block; 
+      margin-bottom: 10px; 
+    }
+    .button-container {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      margin-bottom: 10px; 
+    }
+    a {
+      margin-left: 10px; 
+      text-decoration: none; 
+      color: blue; 
+    }
+    a:hover {
+      text-decoration: underline; 
+    }
+  </style>
+  <script>
+    async function consulta1() {
+      try {
+        const response = await fetch('/data1');
+        const data = await response.json();
+
+        const resultContainer = document.getElementById('result');
+        resultContainer.innerHTML = '';
+
+        data.forEach(item => {
+          const div = document.createElement('div');
+          div.textContent = `id_usuario: ${item.id_usuario}, Nombre: ${item.nombre}`;
+          resultContainer.appendChild(div);
+        });
+
+        document.getElementById('backButton').style.display = 'block';
+      } catch (error) {
+        console.error('Error al obtener datos:', error);
+      }
+    }
+
+    async function consulta2() {
+      try {
+        const response = await fetch('/data2');
+        const data = await response.json();
+
+        const resultContainer = document.getElementById('result');
+        resultContainer.innerHTML = '';
+
+        data.forEach(item => {
+          const div = document.createElement('div');
+          div.textContent = `Nombre: ${item.nombre}, Correo: ${item.correo}, Estado del Pedido: ${item.estado_pedido}, Fecha del Pedido: ${item.fecha_pedido}`;
+          resultContainer.appendChild(div);
+        });
+
+        document.getElementById('backButton').style.display = 'block';
+      } catch (error) {
+        console.error('Error al obtener datos:', error);
+      }
+    }
+
+    async function consulta3() {
+      try {
+        const response = await fetch('/data3');
+        const data = await response.json();
+
+        const resultContainer = document.getElementById('result');
+        resultContainer.innerHTML = '';
+
+        data.forEach(item => {
+          const div = document.createElement('div');
+          div.textContent = `Descripción: ${item.descripcion}, Precio: ${item.precio}, Categoría: ${item.nombre_categoria}`;
+          resultContainer.appendChild(div);
+        });
+
+        document.getElementById('backButton').style.display = 'block';
+      } catch (error) {
+        console.error('Error al obtener datos:', error);
+      }
+    }
+
+    function goBack() {
+      const resultContainer = document.getElementById('result');
+      resultContainer.innerHTML = '';
+      document.getElementById('backButton').style.display = 'none';
+      window.location.href = '/'; 
+    }
+  </script>
+</head>
+<body>
+  <h1>CAFETERIA</h1>
+  <p>Aquí están las consultas.</p>
+
+  
+  <div class="button-container">
+    <button onclick="consulta1()">Consulta1: Select * From usuario</button>
+    <a href="/data1" target="_blank">Ir a /data1</a>
+  </div>
+  <div class="button-container">
+    <button onclick="consulta2()">Consulta2: SELECT usuario.nombre, usuario.correo, pedido.estado_pedido, pedido.fecha_pedido FROM usuario JOIN pedido ON usuario.id_usuario = pedido.id_usuario</button>
+    <a href="/data2" target="_blank">Ir a /data2</a>
+  </div>
+  <div class="button-container">
+    <button onclick="consulta3()">Consulta3: SELECT producto.descripcion, producto.precio, categoria.nombre_categoria FROM producto JOIN categoria ON producto.id_categoria = categoria.id_categoria</button>
+    <a href="/data3" target="_blank">Ir a /data3</a>
+  </div>
+
+  <div id="result"></div>
+
+  <button id="backButton" onclick="goBack()" style="display:none;">Volver</button>
+</body>
+</html>
