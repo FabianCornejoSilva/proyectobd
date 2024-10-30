@@ -1,9 +1,8 @@
-// app.js
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const multer = require('multer'); // Importar multer
-const path = require('path'); // Importar path
+const multer = require('multer');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -34,18 +33,50 @@ mongoose.connect(process.env.MONGODB_URI)
         console.error("Error al conectar a MongoDB:", err);
     });
 
-// Definición de un modelo (Ejemplo para la colección "menu")
-const Menu = mongoose.model('Menu', new mongoose.Schema({
+// Definición del modelo para Productos
+const Producto = mongoose.model('Producto', new mongoose.Schema({
     nombre: String,
     descripcion: String,
     precio: Number,
-    categoria: String,
+    categoria: { type: mongoose.Schema.Types.ObjectId, ref: 'Categoria' }, // Referencia a la categoría
     imagen: String 
 }));
 
-app.get('/menu', async (req, res) => {
+// Definición del modelo para Categorías
+const Categoria = mongoose.model('Categoria', new mongoose.Schema({
+    nombre_categoria: String
+}));
+
+// Obtener todas las categorías
+app.get('/categorias', async (req, res) => {
     try {
-        const productos = await Menu.find(); // Cambiar Producto a Menu
+        const categorias = await Categoria.find(); // Obtener todas las categorías
+        res.json(categorias);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error al obtener las categorías');
+    }
+});
+
+// Agregar una nueva categoría
+app.post('/categorias', async (req, res) => {
+    const { nombre_categoria } = req.body;
+
+    const nuevaCategoria = new Categoria({ nombre_categoria });
+    try {
+        await nuevaCategoria.save();
+        res.status(201).send('Categoría agregada con éxito');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error al agregar categoría');
+    }
+});
+
+
+// Obtener todos los productos
+app.get('/productos', async (req, res) => {
+    try {
+        const productos = await Producto.find().populate('categoria'); // Obtener productos y llenar la categoría
         res.json(productos);
     } catch (err) {
         console.error(err);
@@ -53,17 +84,29 @@ app.get('/menu', async (req, res) => {
     }
 });
 
-app.post('/menu', upload.single('imagen'), async (req, res) => {
+// Agregar un nuevo producto
+app.post('/productos', upload.single('imagen'), async (req, res) => {
     const { nombre, descripcion, precio, categoria } = req.body;
     const imagen = req.file.filename; // Obtener el nombre del archivo de la imagen
 
-    const nuevoMenu = new Menu({ nombre, descripcion, precio, categoria, imagen });
+    const nuevoProducto = new Producto({ nombre, descripcion, precio, categoria, imagen });
     try {
-        await nuevoMenu.save();
+        await nuevoProducto.save();
         res.status(201).send('Producto agregado con éxito');
     } catch (err) {
         console.error(err);
         res.status(500).send('Error al agregar producto');
+    }
+});
+
+// Eliminar un producto
+app.delete('/productos/:id', async (req, res) => {
+    try {
+        await Producto.findByIdAndDelete(req.params.id);
+        res.send('Producto eliminado con éxito');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error al eliminar el producto');
     }
 });
 

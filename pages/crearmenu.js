@@ -1,99 +1,180 @@
 // pages/crearmenu.js
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useEffect, useState } from 'react';
 
 const CrearMenu = () => {
     const [nombre, setNombre] = useState('');
-    const [descripcion, setDescripcion] = useState('');
-    const [precio, setPrecio] = useState('');
-    const [categoria, setCategoria] = useState('');
+    const [precio, setPrecio] = useState(0);
+    const [categoriaId, setCategoriaId] = useState('');
     const [imagen, setImagen] = useState(null);
     const [productos, setProductos] = useState([]);
+    const [categorias, setCategorias] = useState([]);
+    const [nuevaCategoria, setNuevaCategoria] = useState('');
 
     useEffect(() => {
-        const fetchProductos = async () => {
-            const response = await axios.get('http://localhost:3000/menu');
-            setProductos(response.data);
+        const fetchCategorias = async () => {
+            try {
+                const response = await fetch('http://localhost:3000/categorias');
+                if (response.ok) {
+                    const data = await response.json();
+                    setCategorias(data);
+                } else {
+                    console.error('Error al obtener las categorías');
+                }
+            } catch (error) {
+                console.error('Error al obtener las categorías:', error);
+            }
         };
+
+        const fetchProductos = async () => {
+            try {
+                const response = await fetch('http://localhost:3000/productos');
+                if (response.ok) {
+                    const data = await response.json();
+                    setProductos(data);
+                } else {
+                    console.error('Error al obtener los productos');
+                }
+            } catch (error) {
+                console.error('Error al obtener los productos:', error);
+            }
+        };
+
+        fetchCategorias();
         fetchProductos();
     }, []);
 
-    const handleNombreChange = (e) => setNombre(e.target.value);
-    const handleDescripcionChange = (e) => setDescripcion(e.target.value);
-    const handlePrecioChange = (e) => setPrecio(e.target.value);
-    const handleCategoriaChange = (e) => setCategoria(e.target.value);
-    const handleImagenChange = (e) => setImagen(e.target.files[0]);
-
-    const handleSubmit = async (e) => {
+    const handleSubmitProducto = async (e) => {
         e.preventDefault();
 
         const formData = new FormData();
-        formData.append('nombre', nombre);
-        formData.append('descripcion', descripcion);
-        formData.append('precio', precio);
-        formData.append('categoria', categoria);
         formData.append('imagen', imagen);
+        formData.append('nombre', nombre);
+        formData.append('precio', precio);
+        formData.append('categoria', categoriaId);
 
-        try {
-            await axios.post('http://localhost:3000/menu', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
-            alert('Producto agregado con éxito');
+        const response = await fetch('http://localhost:3000/productos', {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (response.ok) {
+            const nuevoProducto = await response.json();
+            setProductos((prevProductos) => [...prevProductos, nuevoProducto]);
             setNombre('');
-            setDescripcion('');
-            setPrecio('');
-            setCategoria('');
+            setPrecio(0);
+            setCategoriaId('');
             setImagen(null);
-        } catch (error) {
-            console.error('Error al agregar el producto:', error);
-            alert('Hubo un error al agregar el producto');
+        } else {
+            console.error('Error al agregar el producto');
+        }
+    };
+
+    const handleImageChange = (e) => {
+        setImagen(e.target.files[0]);
+    };
+
+    const handleDeleteProducto = async (id) => {
+        const response = await fetch(`http://localhost:3000/productos/${id}`, {
+            method: 'DELETE',
+        });
+
+        if (response.ok) {
+            setProductos((prevProductos) => prevProductos.filter(producto => producto._id !== id));
+        } else {
+            console.error('Error al eliminar el producto');
+        }
+    };
+
+    const handleSubmitCategoria = async (e) => {
+        e.preventDefault();
+
+        const response = await fetch('http://localhost:3000/categorias', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ nombre_categoria: nuevaCategoria }),
+        });
+
+        if (response.ok) {
+            const categoriaCreada = await response.json();
+            setCategorias((prevCategorias) => [...prevCategorias, categoriaCreada]);
+            setNuevaCategoria('');
+        } else {
+            console.error('Error al agregar la categoría');
         }
     };
 
     return (
         <div>
             <h1>Crear Menú</h1>
-            <form onSubmit={handleSubmit}>
-                <label>
-                    Nombre del Producto:
-                    <input type="text" value={nombre} onChange={handleNombreChange} required />
-                </label>
-                <br />
-                <label>
-                    Descripción del Producto:
-                    <input type="text" value={descripcion} onChange={handleDescripcionChange} required />
-                </label>
-                <br />
-                <label>
-                    Precio del Producto:
-                    <input type="number" value={precio} onChange={handlePrecioChange} required />
-                </label>
-                <br />
-                <label>
-                    Categoría del Producto:
-                    <input type="text" value={categoria} onChange={handleCategoriaChange} required />
-                </label>
-                <br />
-                <label>
-                    Imagen del Producto:
-                    <input type="file" onChange={handleImagenChange} accept="image/*" required />
-                </label>
-                <br />
+            <form onSubmit={handleSubmitProducto}>
+                <input
+                    type="text"
+                    placeholder="Nombre del producto"
+                    value={nombre}
+                    onChange={(e) => setNombre(e.target.value)}
+                    required
+                />
+                <input
+                    type="number"
+                    placeholder="Precio en centavos"
+                    value={precio}
+                    onChange={(e) => setPrecio(e.target.value)}
+                    required
+                />
+                <select
+                    value={categoriaId}
+                    onChange={(e) => setCategoriaId(e.target.value)}
+                    required
+                >
+                    <option value="">Selecciona una categoría</option>
+                    {categorias.map(categoria => (
+                        <option key={categoria._id} value={categoria._id}>
+                            {categoria.nombre_categoria}
+                        </option>
+                    ))}
+                </select>
+                <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    required
+                />
                 <button type="submit">Agregar Producto</button>
             </form>
 
-            <h2>Productos Agregados</h2>
-            {productos.map((producto) => (
-                <div key={producto._id}>
-                    <h3>{producto.nombre}</h3>
-                    <p>Descripción: {producto.descripcion}</p>
-                    <p>Precio: ${producto.precio}</p>
-                    <p>Categoría: {producto.categoria}</p>
-                    <img src={`/imagenes/${producto.imagen}`} alt={producto.nombre} style={{ width: '100px' }} />
-                </div>
-            ))}
+            <h2>Productos</h2>
+            <ul>
+                {productos.map((producto) => (
+                    <li key={producto._id}>
+                        <img src={`/imagenes/${producto.imagen}`} alt={producto.nombre} />
+                        <p>{producto.nombre}</p>
+                        <p>{producto.precio.toLocaleString('es-CL')} CLP</p>
+                        <p>{producto.categoria.nombre_categoria}</p>
+                        <button onClick={() => handleDeleteProducto(producto._id)}>Eliminar</button>
+                    </li>
+                ))}
+            </ul>
+
+            <h2>Agregar Categoría</h2>
+            <form onSubmit={handleSubmitCategoria}>
+                <input
+                    type="text"
+                    placeholder="Nombre de la nueva categoría"
+                    value={nuevaCategoria}
+                    onChange={(e) => setNuevaCategoria(e.target.value)}
+                    required
+                />
+                <button type="submit">Agregar Categoría</button>
+            </form>
+
+            <h2>Categorías</h2>
+            <ul>
+                {categorias.map(categoria => (
+                    <li key={categoria._id}>{categoria.nombre_categoria}</li>
+                ))}
+            </ul>
         </div>
     );
 };
