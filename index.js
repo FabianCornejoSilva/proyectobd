@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 const app = express();
@@ -11,7 +12,7 @@ const port = 3000;
 // Configuración de multer
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'public/imagenes'); // Carpeta donde se guardarán las imágenes
+        cb(null, 'public/imagenes/menu'); // Carpeta donde se guardarán las imágenes
     },
     filename: (req, file, cb) => {
         cb(null, Date.now() + path.extname(file.originalname)); // Renombrar archivo con timestamp
@@ -126,13 +127,31 @@ app.post('/productos', upload.single('imagen'), async (req, res) => {
 // Eliminar un producto
 app.delete('/productos/:id', async (req, res) => {
     try {
+        // Busca el producto en la base de datos
+        const producto = await Producto.findById(req.params.id);
+        if (!producto) {
+            return res.status(404).send('Producto no encontrado');
+        }
+
+        // Elimina el producto de la base de datos
         await Producto.findByIdAndDelete(req.params.id);
-        res.send('Producto eliminado con éxito');
+        
+        // Construir la ruta de la imagen a eliminar
+        const imagePath = path.join(__dirname, 'public', 'imagenes','menu', producto.imagen);
+
+        // Eliminar el archivo de imagen
+        fs.unlink(imagePath, (err) => {
+            if (err) {
+                console.error("Error al eliminar la imagen:", err);
+                return res.status(500).json({ message: "Error al eliminar la imagen" });
+            }
+            return res.status(200).json({ message: "Producto y su imagen eliminados correctamente" });
+        });
     } catch (err) {
         console.error(err);
         res.status(500).send('Error al eliminar el producto');
-    }
-});
+    } // Aquí cerramos el bloque try-catch
+}); // Aquí cerramos el manejador de ruta
 
 // Actualizar un producto
 app.patch('/productos/:id/toggleMenu', async (req, res) => {
@@ -149,7 +168,6 @@ app.patch('/productos/:id/toggleMenu', async (req, res) => {
         res.status(500).send('Error al actualizar el producto');
     }
 });
-
 
 // Iniciar el servidor
 app.listen(port, () => {
