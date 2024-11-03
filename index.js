@@ -34,12 +34,17 @@ mongoose.connect(process.env.MONGODB_URI)
     });
 
 // Definición del modelo para Productos
+// Definición del modelo para Productos
 const Producto = mongoose.model('Producto', new mongoose.Schema({
     nombre: String,
     descripcion: String,
     precio: Number,
-    categoria: { type: mongoose.Schema.Types.ObjectId, ref: 'Categoria' }, // Referencia a la categoría
-    imagen: String 
+    categoria: {
+        id: { type: mongoose.Schema.Types.ObjectId, ref: 'Categoria' }, // Referencia a la categoría
+        nombre: String // Campo adicional para el nombre de la categoría
+    },
+    imagen: String,
+    enMenu: { type: Boolean, default: false } // Nuevo campo para el menú
 }));
 
 // Definición del modelo para Categorías
@@ -72,11 +77,21 @@ app.post('/categorias', async (req, res) => {
     }
 });
 
+// Eliminar una categoría
+app.delete('/categorias/:id', async (req, res) => {
+    try {
+        await Categoria.findByIdAndDelete(req.params.id);
+        res.send('Categoría eliminada con éxito');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error al eliminar la categoría');
+    }
+});
 
 // Obtener todos los productos
 app.get('/productos', async (req, res) => {
     try {
-        const productos = await Producto.find().populate('categoria'); // Obtener productos y llenar la categoría
+        const productos = await Producto.find(); // Ya no necesitas .populate() porque tienes el nombre de la categoría en el producto
         res.json(productos);
     } catch (err) {
         console.error(err);
@@ -86,10 +101,19 @@ app.get('/productos', async (req, res) => {
 
 // Agregar un nuevo producto
 app.post('/productos', upload.single('imagen'), async (req, res) => {
-    const { nombre, descripcion, precio, categoria } = req.body;
+    const { nombre, descripcion, precio, categoriaId, categoriaNombre } = req.body;
     const imagen = req.file.filename; // Obtener el nombre del archivo de la imagen
 
-    const nuevoProducto = new Producto({ nombre, descripcion, precio, categoria, imagen });
+    const nuevoProducto = new Producto({
+        nombre,
+        descripcion,
+        precio,
+        categoria: {
+            id: categoriaId, // ID de la categoría
+            nombre: categoriaNombre // Nombre de la categoría
+        },
+        imagen
+    });
     try {
         await nuevoProducto.save();
         res.status(201).send('Producto agregado con éxito');
@@ -109,6 +133,23 @@ app.delete('/productos/:id', async (req, res) => {
         res.status(500).send('Error al eliminar el producto');
     }
 });
+
+// Actualizar un producto
+app.patch('/productos/:id/toggleMenu', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const producto = await Producto.findById(id);
+        if (!producto) {
+            return res.status(404).send('Producto no encontrado');
+        }
+        producto.enMenu = !producto.enMenu; // Alternar el estado
+        await producto.save();
+        res.json(producto);
+    } catch (error) {
+        res.status(500).send('Error al actualizar el producto');
+    }
+});
+
 
 // Iniciar el servidor
 app.listen(port, () => {

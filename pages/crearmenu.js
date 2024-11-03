@@ -1,180 +1,159 @@
-// pages/crearmenu.js
 import { useEffect, useState } from 'react';
+import FormularioProducto from '../components/FormularioProducto';
+import ListaProductos from '../components/ListaProductos';
+import ListaCategorias from '../components/ListaCategorias';
+import FormularioCategoria from '../components/FormularioCategoria';
+import { Grid, Container } from '@mui/material';
 
 const CrearMenu = () => {
-    const [nombre, setNombre] = useState('');
-    const [precio, setPrecio] = useState(0);
-    const [categoriaId, setCategoriaId] = useState('');
-    const [imagen, setImagen] = useState(null);
     const [productos, setProductos] = useState([]);
     const [categorias, setCategorias] = useState([]);
-    const [nuevaCategoria, setNuevaCategoria] = useState('');
 
+    const fetchCategorias = async () => {
+        try {
+            const response = await fetch('http://localhost:3000/categorias');
+            if (response.ok) {
+                const data = await response.json();
+                setCategorias(data);
+            } else {
+                console.error('Error al obtener las categorías');
+            }
+        } catch (error) {
+            console.error('Error al obtener las categorías:', error);
+        }
+    };
+
+    const fetchProductos = async () => {
+        try {
+            const response = await fetch('http://localhost:3000/productos');
+            if (response.ok) {
+                const data = await response.json();
+                setProductos(data);
+            } else {
+                console.error('Error al obtener los productos');
+            }
+        } catch (error) {
+            console.error('Error al obtener los productos:', error);
+        }
+    };
     useEffect(() => {
-        const fetchCategorias = async () => {
-            try {
-                const response = await fetch('http://localhost:3000/categorias');
-                if (response.ok) {
-                    const data = await response.json();
-                    setCategorias(data);
-                } else {
-                    console.error('Error al obtener las categorías');
-                }
-            } catch (error) {
-                console.error('Error al obtener las categorías:', error);
-            }
-        };
-
-        const fetchProductos = async () => {
-            try {
-                const response = await fetch('http://localhost:3000/productos');
-                if (response.ok) {
-                    const data = await response.json();
-                    setProductos(data);
-                } else {
-                    console.error('Error al obtener los productos');
-                }
-            } catch (error) {
-                console.error('Error al obtener los productos:', error);
-            }
-        };
-
         fetchCategorias();
         fetchProductos();
     }, []);
 
-    const handleSubmitProducto = async (e) => {
-        e.preventDefault();
-
-        const formData = new FormData();
-        formData.append('imagen', imagen);
-        formData.append('nombre', nombre);
-        formData.append('precio', precio);
-        formData.append('categoria', categoriaId);
-
+    const handleSubmitProducto = async (formData) => {
         const response = await fetch('http://localhost:3000/productos', {
             method: 'POST',
             body: formData,
         });
 
         if (response.ok) {
-            const nuevoProducto = await response.json();
-            setProductos((prevProductos) => [...prevProductos, nuevoProducto]);
-            setNombre('');
-            setPrecio(0);
-            setCategoriaId('');
-            setImagen(null);
+            await fetchProductos(); // Actualiza la lista de productos
         } else {
             console.error('Error al agregar el producto');
         }
     };
 
-    const handleImageChange = (e) => {
-        setImagen(e.target.files[0]);
-    };
 
-    const handleDeleteProducto = async (id) => {
-        const response = await fetch(`http://localhost:3000/productos/${id}`, {
-            method: 'DELETE',
-        });
-
-        if (response.ok) {
-            setProductos((prevProductos) => prevProductos.filter(producto => producto._id !== id));
-        } else {
-            console.error('Error al eliminar el producto');
-        }
-    };
-
-    const handleSubmitCategoria = async (e) => {
-        e.preventDefault();
-
+    const handleAddCategoria = async (nombreCategoria) => {
         const response = await fetch('http://localhost:3000/categorias', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ nombre_categoria: nuevaCategoria }),
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nombre_categoria: nombreCategoria }),
         });
 
         if (response.ok) {
-            const categoriaCreada = await response.json();
-            setCategorias((prevCategorias) => [...prevCategorias, categoriaCreada]);
-            setNuevaCategoria('');
+            await fetchCategorias();
         } else {
             console.error('Error al agregar la categoría');
         }
     };
 
+    const handleDeleteCategoria = async (id) => {
+        const response = await fetch(`http://localhost:3000/categorias/${id}`, {
+            method: 'DELETE',
+        });
+
+        if (response.ok) {
+            await fetchCategorias();
+        } else {
+            console.error('Error al eliminar la categoría');
+        }
+    };
+
+    const handleDelete = async (id) => {
+        const response = await fetch(`http://localhost:3000/productos/${id}`, {
+            method: 'DELETE',
+        });
+
+        if (response.ok) {
+            setProductos((prev) => prev.filter((producto) => producto._id !== id));
+        } else {
+            console.error('Error al eliminar el producto');
+        }
+    };
+
+    // Nueva función para alternar el estado en el menú
+    const handleToggleMenu = async (id) => {
+        try {
+            const response = await fetch(`http://localhost:3000/productos/${id}/toggleMenu`, {
+                method: 'PATCH',
+            });
+            if (response.ok) {
+                const updatedProducto = await response.json();
+                setProductos((prevProductos) =>
+                    prevProductos.map((producto) =>
+                        producto._id === updatedProducto._id ? updatedProducto : producto
+                    )
+                );
+            } else {
+                console.error('Error al alternar el estado del menú');
+            }
+        } catch (error) {
+            console.error('Error al alternar el estado del menú:', error);
+        }
+    };
+
     return (
         <div>
-            <h1>Crear Menú</h1>
-            <form onSubmit={handleSubmitProducto}>
-                <input
-                    type="text"
-                    placeholder="Nombre del producto"
-                    value={nombre}
-                    onChange={(e) => setNombre(e.target.value)}
-                    required
-                />
-                <input
-                    type="number"
-                    placeholder="Precio en centavos"
-                    value={precio}
-                    onChange={(e) => setPrecio(e.target.value)}
-                    required
-                />
-                <select
-                    value={categoriaId}
-                    onChange={(e) => setCategoriaId(e.target.value)}
-                    required
-                >
-                    <option value="">Selecciona una categoría</option>
-                    {categorias.map(categoria => (
-                        <option key={categoria._id} value={categoria._id}>
-                            {categoria.nombre_categoria}
-                        </option>
-                    ))}
-                </select>
-                <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    required
-                />
-                <button type="submit">Agregar Producto</button>
-            </form>
+            {/* Banner negro en la parte superior que cubre todo el ancho de la página */}
+            <div style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100%',
+                backgroundColor: 'black',
+                color: 'white',
+                padding: '25px',
+                textAlign: 'center',
+                zIndex: 1000
+            }}>
+                <h1>Panel de Creación de Menú</h1>
+            </div>
 
-            <h2>Productos</h2>
-            <ul>
-                {productos.map((producto) => (
-                    <li key={producto._id}>
-                        <img src={`/imagenes/${producto.imagen}`} alt={producto.nombre} />
-                        <p>{producto.nombre}</p>
-                        <p>{producto.precio.toLocaleString('es-CL')} CLP</p>
-                        <p>{producto.categoria.nombre_categoria}</p>
-                        <button onClick={() => handleDeleteProducto(producto._id)}>Eliminar</button>
-                    </li>
-                ))}
-            </ul>
+            {/* Contenido principal con margen superior para evitar superposición con el banner */}
+            <Container style={{ marginTop: '100px' }}>
+                <h2>Categorías</h2>
+                <Grid container alignItems="center" spacing={2}>
+                    <Grid item xs={12} sm={8}>
+                        <ListaCategorias categorias={categorias} onDelete={handleDeleteCategoria} />
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                        <FormularioCategoria onSubmit={handleAddCategoria} />
+                    </Grid>
+                </Grid>
 
-            <h2>Agregar Categoría</h2>
-            <form onSubmit={handleSubmitCategoria}>
-                <input
-                    type="text"
-                    placeholder="Nombre de la nueva categoría"
-                    value={nuevaCategoria}
-                    onChange={(e) => setNuevaCategoria(e.target.value)}
-                    required
+                <h2>Agregar Producto</h2>
+                <FormularioProducto categorias={categorias} onSubmit={handleSubmitProducto} />
+
+                <h2>Productos</h2>
+                <ListaProductos
+                    productos={productos}
+                    categorias={categorias}
+                    onDelete={handleDelete}
+                    onToggleMenu={handleToggleMenu} // Pasa la función aquí
                 />
-                <button type="submit">Agregar Categoría</button>
-            </form>
-
-            <h2>Categorías</h2>
-            <ul>
-                {categorias.map(categoria => (
-                    <li key={categoria._id}>{categoria.nombre_categoria}</li>
-                ))}
-            </ul>
+            </Container>
         </div>
     );
 };
