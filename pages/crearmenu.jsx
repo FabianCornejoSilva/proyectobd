@@ -63,8 +63,14 @@ const CrearMenu = () => {
         try {
             // Verificar que formData tenga todos los campos necesarios
             if (!formData.get('imagen')) {
-                console.error('No se ha seleccionado ninguna imagen');
-                // Aquí podrías mostrar un mensaje al usuario
+                alert('Se requiere una imagen para el producto');
+                return;
+            }
+
+            // Verificar longitud del nombre
+            const nombre = formData.get('nombre');
+            if (nombre.length > 50) {
+                alert('El nombre del producto no puede exceder los 50 caracteres');
                 return;
             }
 
@@ -75,14 +81,15 @@ const CrearMenu = () => {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.error || 'Error al crear el producto');
+                alert(errorData.error || 'Error al crear el producto');
+                return;
             }
 
             await fetchProductos(); // Recargar la lista de productos
             
         } catch (error) {
             console.error('Error al agregar el producto:', error);
-            // Aquí podrías mostrar un mensaje de error al usuario
+            alert('Error al crear el producto. Por favor, inténtelo de nuevo.');
         }
     };
 

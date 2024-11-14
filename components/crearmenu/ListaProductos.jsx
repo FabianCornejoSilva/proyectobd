@@ -4,7 +4,6 @@ import EditIcon from '@mui/icons-material/Edit';
 import { useState } from 'react';
 
 const ListaProductos = ({ productos, categorias, onDelete, onToggleMenu, onEdit }) => {
-    const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
@@ -17,17 +16,17 @@ const ListaProductos = ({ productos, categorias, onDelete, onToggleMenu, onEdit 
     });
     const [previewImage, setPreviewImage] = useState(null);
 
-    // Filtrar productos según la categoría seleccionada
-    const productosFiltrados = categoriaSeleccionada 
-        ? productos.filter(producto => 
-            producto.categoria && 
-            producto.categoria.nombre_categoria === categoriaSeleccionada
-        )
-        : productos;
+    // Función para normalizar texto (eliminar tildes y convertir a minúsculas)
+    const normalizeText = (text) => {
+        return text
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '');
+    };
 
-    // Filtrar productos según el término de búsqueda
-    const productosFinales = productosFiltrados.filter(producto => 
-        producto.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+    // Modificar la lógica de filtrado para usar la normalización
+    const productosFinales = productos.filter(producto => 
+        normalizeText(producto.nombre).includes(normalizeText(searchTerm))
     );
 
     const handleEditClick = (producto) => {
@@ -95,7 +94,6 @@ const ListaProductos = ({ productos, categorias, onDelete, onToggleMenu, onEdit 
 
     return (
         <>
-            {/* Barra de búsqueda */}
             <TextField
                 label="Buscar Producto"
                 variant="outlined"
@@ -103,26 +101,8 @@ const ListaProductos = ({ productos, categorias, onDelete, onToggleMenu, onEdit 
                 margin="normal"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Buscar por nombre del producto..."
             />
-
-            {/* Filtro de categoría */}
-            <FormControl fullWidth sx={{ marginBottom: 2 }}>
-                <InputLabel id="categoria-select-label">Categoría</InputLabel>
-                <Select
-                    labelId="categoria-select-label"
-                    value={categoriaSeleccionada}
-                    onChange={(e) => setCategoriaSeleccionada(e.target.value)}
-                >
-                    <MenuItem value="">
-                        <em>Todos</em>
-                    </MenuItem>
-                    {categorias.map((categoria) => (
-                        <MenuItem key={categoria._id} value={categoria.nombre_categoria}>
-                            {categoria.nombre_categoria}
-                        </MenuItem>
-                    ))}
-                </Select>
-            </FormControl>
 
             <Grid container spacing={2}>
                 {productosFinales.length > 0 ? (
@@ -256,7 +236,6 @@ const ListaProductos = ({ productos, categorias, onDelete, onToggleMenu, onEdit 
                 )}
             </Grid>
 
-            {/* Modal de Edición */}
             <Dialog open={editModalOpen} onClose={() => setEditModalOpen(false)} maxWidth="sm" fullWidth>
                 <DialogTitle>Editar Producto</DialogTitle>
                 <DialogContent>

@@ -55,6 +55,19 @@ const FormularioProducto = ({ categorias, onSubmit }) => {
         setDescripcion('');
         setImagen(null);
         setImagenPreview(null);
+        
+        // Limpiar el input de archivo
+        const fileInput = document.querySelector('input[type="file"]');
+        if (fileInput) {
+            fileInput.value = '';
+        }
+    };
+
+    const handleNombreChange = (e) => {
+        const value = e.target.value;
+        if (value.length <= 50) {
+            setNombre(value);
+        }
     };
 
     return (
@@ -75,9 +88,14 @@ const FormularioProducto = ({ categorias, onSubmit }) => {
                         label="Nombre del producto"
                         variant="outlined"
                         value={nombre}
-                        onChange={(e) => setNombre(e.target.value)}
+                        onChange={handleNombreChange}
                         required
                         size="small"
+                        inputProps={{ 
+                            maxLength: 50,
+                            pattern: '.{0,50}'
+                        }}
+                        helperText={`${nombre.length}/50 caracteres`}
                         sx={{ gridColumn: 'span 2' }}
                     />
                     <TextField
@@ -88,6 +106,11 @@ const FormularioProducto = ({ categorias, onSubmit }) => {
                         onChange={(e) => setPrecio(e.target.value)}
                         required
                         size="small"
+                        inputProps={{ 
+                            min: 0,
+                            max: 1000000,
+                            step: "any" 
+                        }}
                         sx={{ gridColumn: 'span 2' }}
                     />
                     <FormControl fullWidth required size="small" sx={{ gridColumn: 'span 2' }}>

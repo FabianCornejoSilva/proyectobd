@@ -101,6 +101,8 @@ const FormularioCategoria = ({ onSubmit, categorias = [], onDelete, onEdit }) =>
                             onChange={(e) => setNuevaCategoria(e.target.value)}
                             required
                             fullWidth
+                            inputProps={{ maxLength: 50 }}
+                            helperText={`${nuevaCategoria.length}/50 caracteres`}
                             sx={{ 
                                 backgroundColor: 'white',
                                 '& .MuiOutlinedInput-root': {
@@ -195,6 +197,8 @@ const FormularioCategoria = ({ onSubmit, categorias = [], onDelete, onEdit }) =>
                                             size="small"
                                             fullWidth
                                             autoFocus
+                                            inputProps={{ maxLength: 50 }}
+                                            helperText={`${categoriaEditada.length}/50 caracteres`}
                                         />
                                         <IconButton 
                                             onClick={() => handleSaveEdit(categoria._id)}

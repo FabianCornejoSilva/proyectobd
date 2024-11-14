@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
-import { Box, Typography, Container, TextField, IconButton } from '@mui/material';
+import { Box, Typography, Container, TextField, IconButton, Divider } from '@mui/material';
 import Image from 'next/image';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import bannerImage from '../public/imagenes/logo.png';
+import bannerImage2 from '../public/imagenes/logo2.png';
 import segundoBannerImage from '../public/imagenes/publicidad1.png';
 import tercerBannerImage from '../public/imagenes/publicidad2.png';
 import ProductoCard from '../components/pedir/ProductoCard';
@@ -28,7 +29,7 @@ const Pedir = () => {
     const searchRef = useRef(null);
 
     // Imágenes del banner
-    const banners = [tercerBannerImage, segundoBannerImage]; // Añade más imágenes si es necesario
+    const banners = [segundoBannerImage, tercerBannerImage]; // Añade más imágenes si es necesario
 
     const productosFiltrados = busquedaActiva
         ? productos.filter(producto => producto.nombre.toLowerCase().includes(productoBusqueda.toLowerCase()))
@@ -77,8 +78,18 @@ const Pedir = () => {
             try {
                 const response = await fetch('http://localhost:3000/productos');
                 const data = await response.json();
+                
+                // Filtrar solo productos en menú
+                const productosEnMenu = data.filter(producto => producto.enMenu);
+                
+                // Obtener categorías solo de productos en menú
+                const categoriasUnicas = [...new Set(
+                    productosEnMenu
+                        .map(producto => producto.categoria?.nombre)
+                        .filter(Boolean)
+                )];
+
                 setProductos(data);
-                const categoriasUnicas = [...new Set(data.map(producto => producto.categoria.nombre))];
                 setCategorias(categoriasUnicas);
             } catch (error) {
                 console.error("Error al cargar productos:", error);
@@ -87,13 +98,10 @@ const Pedir = () => {
 
         fetchProductos();
 
-        // Cambiar de banner cada 3 segundos
-        const interval = setInterval(() => {
-            setDirection('right'); // Establece la dirección por defecto
-            setIndexBanner(prevIndex => (prevIndex + 1) % banners.length);
-        }, 4000); // Cambia el tiempo según sea necesario
+        // Configurar un intervalo para actualizar los datos
+        const intervalId = setInterval(fetchProductos, 5000); // Actualiza cada 5 segundos
 
-        return () => clearInterval(interval); // Limpia el intervalo
+        return () => clearInterval(intervalId); // Limpia el intervalo
     }, []);
 
     // Segundo useEffect para el observer de categorías
@@ -168,169 +176,301 @@ const Pedir = () => {
     };
 
     const handlePrevBanner = () => {
-        setSlidePosition(prev => prev + 100);
-        setIndexBanner(prevIndex => {
-            const newIndex = prevIndex === 0 ? banners.length - 1 : prevIndex - 1;
-            setTimeout(() => {
-                setSlidePosition(-(newIndex * 100));
-            }, 0);
-            return newIndex;
-        });
+        setIndexBanner((prevIndex) => (prevIndex - 1 + banners.length) % banners.length);
     };
 
     const handleNextBanner = () => {
-        setSlidePosition(prev => prev - 100);
-        setIndexBanner(prevIndex => {
-            const newIndex = (prevIndex + 1) % banners.length;
-            if (newIndex === 0) {
-                setSlidePosition(-(banners.length - 1) * 100);
-            }
-            return newIndex;
-        });
+        setIndexBanner((prevIndex) => (prevIndex + 1) % banners.length);
     };
 
-    // Función para manejar el cierre del buscador
+    const handleSearchClick = () => {
+        setShowSearch(true);
+    };
+
     const handleClickAway = () => {
-        if (showSearch && !searchTerm) {
+        if (!searchTerm) {  // Solo cierra si no hay texto
             setShowSearch(false);
         }
     };
 
-    return (
-        <>
-            {/* Primer Banner */}
-            <Box sx={{ my: 2, display: 'flex', justifyContent: 'center', mb: 4 }}>
-                <Image
-                    src={bannerImage}
-                    alt="Logo de la Cafetería"
-                    layout="intrinsic" // Cambiado a intrinsic para que se ajuste a su contenido
-                    width={500} // Ajusta el tamaño según sea necesario
-                    height={800} // Ajusta el tamaño según sea necesario
-                />
-            </Box>
+    // Al inicio del componente, añade este useEffect para la rotación automática
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setIndexBanner((prevIndex) => (prevIndex + 1) % banners.length);
+        }, 5000); // Cambia cada 5 segundos
 
-            {/* Mensajes debajo del primer banner */}
-            <Box sx={{ 
-                mt: -2,
-                mb: 2,
-                display: 'flex', 
-                justifyContent: 'center',
-                gap: '100px',
-                width: '100%',
-                maxWidth: '800px',
-                margin: '0 auto',
-                position: 'relative',
-                zIndex: 1
-            }}>
-                <Link href="/pedir" passHref>
-                    <Typography
-                        variant="h6"
-                        sx={{
-                            cursor: 'pointer',
-                            fontSize: '2rem',
-                            fontWeight: 'bold',
-                            position: 'relative',
-                            paddingBottom: '10px',
-                            '&::after': {
-                                content: '""',
-                                position: 'absolute',
-                                bottom: '5px',
-                                left: 0,
+        return () => clearInterval(timer); // Limpia el intervalo cuando el componente se desmonta
+    }, []);
+
+    return (
+        <Box sx={{ width: '100%' }}>
+            {/* Barra negra superior */}
+            <Box
+                sx={{
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 1000,
+                    backgroundColor: 'black',
+                    color: 'white',
+                    padding: '8px 16px',
+                    width: '100%',
+                    minHeight: '80px',
+                    display: 'flex',
+                    alignItems: 'center'
+                }}
+            >
+                {/* Contenedor principal en una sola fila */}
+                <Box sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'flex-start',
+                    width: '100%',
+                    gap: 2
+                }}>
+                    {/* Logo y botones */}
+                    <Box sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 2,
+                        flex: '0 0 auto'
+                    }}>
+                        <Image
+                            src={bannerImage2}
+                            alt="Logo"
+                            width={140}
+                            height={119}
+                            style={{
+                                objectFit: 'contain',
+                                width: '150px',
+                                height: 'auto',
+                                marginRight: '20px'
+                            }}
+                        />
+
+                        {/* Botones */}
+                        <Box sx={{
+                            display: 'flex',
+                            gap: 2,
+                            alignItems: 'center'
+                        }}>
+                            <Link href="/pedir" passHref>
+                                <Box sx={{
+                                    backgroundColor: 'white',
+                                    color: 'black',
+                                    padding: { xs: '4px 12px', sm: '8px 16px' },
+                                    borderRadius: '20px',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s ease',
+                                    '&:hover': {
+                                        transform: 'scale(1.05)',
+                                        boxShadow: '0 0 10px rgba(255,255,255,0.3)'
+                                    }
+                                }}>
+                                    <Typography sx={{
+                                        fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                                        fontWeight: 'bold',
+                                        whiteSpace: 'nowrap'
+                                    }}>
+                                        PIDE AQUÍ
+                                    </Typography>
+                                </Box>
+                            </Link>
+
+                            <Link href="/conocenos" passHref>
+                                <Box sx={{
+                                    backgroundColor: 'white',
+                                    color: 'black',
+                                    padding: { xs: '4px 12px', sm: '8px 16px' },
+                                    borderRadius: '20px',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s ease',
+                                    '&:hover': {
+                                        transform: 'scale(1.05)',
+                                        boxShadow: '0 0 10px rgba(255,255,255,0.3)'
+                                    }
+                                }}>
+                                    <Typography sx={{
+                                        fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                                        fontWeight: 'bold',
+                                        whiteSpace: 'nowrap'
+                                    }}>
+                                        CONÓCENOS
+                                    </Typography>
+                                </Box>
+                            </Link>
+                        </Box>
+                    </Box>
+
+                    {/* Barra de búsqueda y categorías */}
+                    <Box sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 2,
+                        flex: '0 1 auto',
+                        maxWidth: '1000px',
+                        marginLeft: '300px'
+                    }}>
+                        {/* Barra de búsqueda */}
+                        <ClickAwayListener onClickAway={handleClickAway}>
+                            <Box
+                                sx={{
+                                    backgroundColor: 'white',
+                                    borderRadius: '20px',
+                                    padding: showSearch ? '8px 16px' : '4px 8px',
+                                    width: showSearch ? '300px' : 'auto',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: showSearch ? 1.5 : 0.5,
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                    transition: 'all 0.3s ease-in-out',
+                                    minWidth: showSearch ? '40px' : '35px',
+                                    height: showSearch ? '45px' : '35px',
+                                    marginRight: '9px'
+                                }}
+                            >
+                                <SearchIcon 
+                                    sx={{ 
+                                        color: 'gray',
+                                        cursor: 'pointer',
+                                        fontSize: showSearch ? '1.5rem' : '1.3rem'
+                                    }} 
+                                    onClick={handleSearchClick}
+                                />
+
+                                {showSearch && (
+                                    <TextField
+                                        variant="standard"
+                                        placeholder="Buscar productos..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        autoFocus
+                                        InputProps={{
+                                            disableUnderline: true,
+                                        }}
+                                        sx={{
+                                            flex: 1,
+                                            '& input': {
+                                                padding: '4px 0',
+                                                fontSize: '1rem'
+                                            }
+                                        }}
+                                    />
+                                )}
+                            </Box>
+                        </ClickAwayListener>
+
+                        {/* Categorías */}
+                        <Box 
+                            sx={{ 
+                                display: { xs: 'none', sm: 'flex' },
+                                alignItems: 'center',
+                                backgroundColor: 'white',
+                                borderRadius: '20px',
+                                padding: '8px 16px',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                maxWidth: '500px',
+                                position: 'relative',
                                 width: '100%',
-                                height: '3px',
-                                backgroundColor: '#000',
-                                borderRadius: '2px',
-                                display: 'block'
-                            }
-                        }}
-                    >
-                        Pide aquí
-                    </Typography>
-                </Link>
-                <Link href="/conocenos" passHref>
-                    <Typography
-                        variant="h6"
-                        sx={{
-                            cursor: 'pointer',
-                            fontSize: '2rem',
-                            fontWeight: 'bold'
-                        }}
-                    >
-                        Conócenos
-                    </Typography>
-                </Link>
+                                flex: 1
+                            }}
+                        >
+                            {/* Contenedor con scroll */}
+                            <Box
+                                sx={{
+                                    display: 'flex',
+                                    gap: 2,
+                                    alignItems: 'center',
+                                    overflow: 'auto',
+                                    whiteSpace: 'nowrap',
+                                    scrollBehavior: 'smooth',
+                                    msOverflowStyle: 'none',
+                                    scrollbarWidth: 'none',
+                                    '&::-webkit-scrollbar': {
+                                        display: 'none'
+                                    },
+                                    width: '100%',
+                                    position: 'relative',
+                                    padding: '0 20px',
+                                }}
+                            >
+                                {categorias.map((categoria) => (
+                                    <Typography
+                                        key={categoria}
+                                        onClick={() => scrollToCategoria(categoria)}
+                                        sx={{
+                                            cursor: 'pointer',
+                                            color: categoriaActual === categoria ? 'primary.main' : 'text.secondary',
+                                            fontWeight: categoriaActual === categoria ? 'bold' : 'normal',
+                                            fontSize: '0.9rem',
+                                            padding: '4px 8px',
+                                            borderRadius: '12px',
+                                            transition: 'all 0.2s',
+                                            position: 'relative',
+                                            flex: '0 0 auto',
+                                            '&:after': {
+                                                content: '""',
+                                                position: 'absolute',
+                                                bottom: 0,
+                                                left: '50%',
+                                                width: categoriaActual === categoria ? '100%' : '0%',
+                                                height: '2px',
+                                                backgroundColor: 'primary.main',
+                                                transition: 'all 0.3s ease',
+                                                transform: 'translateX(-50%)',
+                                            },
+                                            '&:hover': {
+                                                color: 'primary.main',
+                                                backgroundColor: 'rgba(0,0,0,0.04)',
+                                                '&:after': {
+                                                    width: '100%'
+                                                }
+                                            }
+                                        }}
+                                    >
+                                        {categoria}
+                                    </Typography>
+                                ))}
+                            </Box>
+                        </Box>
+                    </Box>
+
+                    {/* Total y carrito */}
+                    <Box sx={{
+                        marginLeft: 'auto',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 2,
+                        flex: '0 0 auto',
+                        backgroundColor: 'white',
+                        color: 'black',
+                        padding: '8px 16px',
+                        borderRadius: '20px',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    }}>
+                        <Typography sx={{
+                            fontSize: { xs: '0.8rem', sm: '1rem' },
+                            fontWeight: 'bold',
+                            whiteSpace: 'nowrap'
+                        }}>
+                            {total.toLocaleString('es-CL')} CLP
+                        </Typography>
+                        <ShoppingCartIcon sx={{ 
+                            fontSize: { xs: '1.2rem', sm: '1.5rem' },
+                            color: 'black'
+                        }} />
+                    </Box>
+                </Box>
             </Box>
 
             {/* Banners rotativos */}
             <Box 
                 sx={{ 
-                    position: 'relative',
-                    width: '100vw',
+                    width: '100%',
                     height: '700px',
-                    overflow: 'hidden',
-                    left: '50%',
-                    right: '50%',
-                    marginLeft: '-50vw',
-                    marginRight: '-50vw',
-                    backgroundColor: '#000',
-                    marginBottom: '30px',
-                    '&:hover .navigation-button': { // Muestra los botones al hacer hover
-                        opacity: 1,
-                    }
+                    position: 'relative',
+                    overflow: 'hidden'
                 }}
             >
-                {/* Botón Anterior */}
-                <Box
-                    className="navigation-button" // Clase para el hover
-                    onClick={handlePrevBanner}
-                    sx={{
-                        position: 'absolute',
-                        left: 0,
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        zIndex: 2,
-                        backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                        borderRadius: '0 4px 4px 0',
-                        padding: '20px 10px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        opacity: 0, // Inicialmente oculto
-                        transition: 'all 0.3s ease', // Transición suave
-                        '&:hover': {
-                            backgroundColor: 'rgba(0, 0, 0, 0.5)'
-                        }
-                    }}
-                >
-                    <ArrowBackIosNewIcon sx={{ color: 'white' }} />
-                </Box>
-
-                {/* Botón Siguiente */}
-                <Box
-                    className="navigation-button" // Clase para el hover
-                    onClick={handleNextBanner}
-                    sx={{
-                        position: 'absolute',
-                        right: 0,
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        zIndex: 2,
-                        backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                        borderRadius: '4px 0 0 4px',
-                        padding: '20px 10px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        opacity: 0, // Inicialmente oculto
-                        transition: 'all 0.3s ease', // Transición suave
-                        '&:hover': {
-                            backgroundColor: 'rgba(0, 0, 0, 0.5)'
-                        }
-                    }}
-                >
-                    <ArrowForwardIosIcon sx={{ color: 'white' }} />
-                </Box>
-
                 {/* Banners */}
                 {banners.map((banner, i) => (
                     <Box
@@ -351,155 +491,59 @@ const Pedir = () => {
                             objectFit="cover"
                             quality={100}
                             priority={i === 0}
-                            style={{
-                                width: '100%',
-                                height: '100%',
-                            }}
                         />
                     </Box>
                 ))}
-            </Box>
 
-            {/* Barra de búsqueda y total con categorías integradas */}
-            <Box
-                sx={{
-                    position: 'sticky',
-                    top: 0,
-                    zIndex: 10,
-                    backgroundColor: 'black',
-                    color: 'white',
-                    padding: '8px 16px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 2,
-                    height: '80px', // Aumentamos la altura del banner negro
-                }}
-            >
-                {/* Total y carrito arriba a la derecha */}
-                <Box sx={{ 
-                    display: 'flex', 
-                    justifyContent: 'flex-end', 
-                    alignItems: 'center', 
-                    gap: 2 
-                }}>
-                    <Typography variant="h6">
-                        Total: {total.toLocaleString('es-CL')} CLP
-                    </Typography>
-                    <ShoppingCartIcon sx={{ color: 'white' }} />
+                {/* Solo los botones de navegación del banner */}
+                <Box
+                    className="navigation-button"
+                    onClick={handlePrevBanner}
+                    sx={{
+                        position: 'absolute',
+                        left: 0,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        zIndex: 2,
+                        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                        borderRadius: '0 4px 4px 0',
+                        padding: '20px 10px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        opacity: 0,
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                            backgroundColor: 'rgba(0, 0, 0, 0.5)'
+                        }
+                    }}
+                >
+                    <ArrowBackIosNewIcon sx={{ color: 'white' }} />
                 </Box>
 
-                {/* Barra de búsqueda centrada */}
-                <Box sx={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    width: '100%',
-                    marginTop: '-35px', // Aumentamos el margen negativo para subir más la barra
-                    position: 'relative', // Añadido para mejor control del posicionamiento
-                }}>
-                    <Box
-                        sx={{
-                            backgroundColor: 'white',
-                            borderRadius: '20px',
-                            padding: '4px 16px',
-                            maxWidth: '60%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 2,
-                        }}
-                    >
-                        {/* Categorías */}
-                        <Box
-                            sx={{
-                                display: 'flex',
-                                overflowX: 'auto',
-                                '&::-webkit-scrollbar': { height: '4px' },
-                                '&::-webkit-scrollbar-track': { background: '#f0f0f0' },
-                                '&::-webkit-scrollbar-thumb': { background: '#888', borderRadius: '4px' },
-                                paddingBottom: '8px', // Añadimos padding inferior
-                            }}
-                        >
-                            {categorias.map((categoria) => (
-                                <Typography
-                                    key={categoria}
-                                    onClick={() => scrollToCategoria(categoria)}
-                                    sx={{
-                                        color: categoriaActual === categoria ? '#0d47a1' : 'black',
-                                        fontWeight: categoriaActual === categoria ? 'bold' : 'normal',
-                                        cursor: 'pointer',
-                                        padding: '4px 20px',
-                                        margin: '0 2px',
-                                        borderRadius: '15px',
-                                        transition: 'all 0.3s ease',
-                                        position: 'relative',
-                                        whiteSpace: 'nowrap',
-                                        fontSize: '0.95rem',
-                                        letterSpacing: '0.5px',
-                                        '&::after': {
-                                            content: '""',
-                                            position: 'absolute',
-                                            bottom: 0,
-                                            left: 0,
-                                            width: '100%',
-                                            height: '2px',
-                                            backgroundColor: '#0d47a1',
-                                            transform: categoriaActual === categoria ? 'scaleX(1)' : 'scaleX(0)',
-                                            transition: 'transform 0.3s ease',
-                                        },
-                                        '&:hover': {
-                                            color: '#0d47a1',
-                                            backgroundColor: 'rgba(13, 71, 161, 0.08)',
-                                            '&::after': {
-                                                transform: 'scaleX(1)',
-                                            }
-                                        }
-                                    }}
-                                >
-                                    {categoria}
-                                </Typography>
-                            ))}
-                        </Box>
-
-                        {/* Buscador con ClickAwayListener */}
-                        <ClickAwayListener onClickAway={handleClickAway}>
-                            <Box sx={{ 
-                                display: 'flex', 
-                                alignItems: 'center',
-                                minWidth: showSearch ? '150px' : 'auto',
-                                transition: 'all 0.3s ease',
-                            }}>
-                                {showSearch ? (
-                                    <TextField
-                                        size="small"
-                                        placeholder="Buscar..."
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        autoFocus
-                                        ref={searchRef}
-                                        sx={{
-                                            '& .MuiOutlinedInput-root': {
-                                                borderRadius: '20px',
-                                                height: '32px',
-                                                backgroundColor: 'white',
-                                            },
-                                            '& .MuiOutlinedInput-input': {
-                                                padding: '4px 12px',
-                                            }
-                                        }}
-                                    />
-                                ) : (
-                                    <IconButton 
-                                        onClick={() => setShowSearch(true)}
-                                        sx={{ 
-                                            color: 'black',
-                                            padding: '4px',
-                                        }}
-                                    >
-                                        <SearchIcon />
-                                    </IconButton>
-                                )}
-                            </Box>
-                        </ClickAwayListener>
-                    </Box>
+                <Box
+                    className="navigation-button"
+                    onClick={handleNextBanner}
+                    sx={{
+                        position: 'absolute',
+                        right: 0,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        zIndex: 2,
+                        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                        borderRadius: '4px 0 0 4px',
+                        padding: '20px 10px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        opacity: 0,
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                            backgroundColor: 'rgba(0, 0, 0, 0.5)'
+                        }
+                    }}
+                >
+                    <ArrowForwardIosIcon sx={{ color: 'white' }} />
                 </Box>
             </Box>
 
@@ -585,7 +629,7 @@ const Pedir = () => {
                         <Typography variant="h6" gutterBottom>
                             Contacto
                         </Typography>
-                        <Typography>+56 9 1234 5678</Typography>
+                        <Typography>+56 9 6666 6666</Typography>
                         <Typography>contacto@cafeteria.cl</Typography>
                     </Box>
 
@@ -593,12 +637,25 @@ const Pedir = () => {
                         <Typography variant="h6" gutterBottom>
                             Ubicación
                         </Typography>
-                        <Typography>Av. Principal 123</Typography>
-                        <Typography>Santiago, Chile</Typography>
+                        <Typography>Av.calle 123, Valparaíso</Typography>
+                        <Typography>Valparaíso, Chile</Typography>
                     </Box>
                 </Box>
             </Box>
-        </>
+
+            {/* Banner negro con botón */}
+            <Box sx={{ 
+                width: '100%',
+                height: '80px',
+                backgroundColor: 'black',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+            }}>
+               
+               
+            </Box>
+        </Box>
     );
 };
 

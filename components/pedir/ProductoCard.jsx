@@ -31,8 +31,12 @@ const ProductoCard = ({ producto, agregarAlCarrito }) => {
                 sx={{
                     width: '100%',
                     height: '200px',
+                    maxWidth: '800px',
+                    maxHeight: '800px',
                     objectFit: 'cover',
                     transition: 'transform 0.3s ease',
+                    margin: '0 auto',
+                    display: 'block',
                     '&:hover': {
                         transform: 'scale(1.05)',
                     }
