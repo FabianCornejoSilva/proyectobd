@@ -225,8 +225,36 @@ const Pedir = () => {
 
                 {Object.keys(productosPorCategoria).map(categoria => (
                     <Box key={categoria} id={categoria} sx={{ mb: 4 }}>
-                        <Typography variant="h4" gutterBottom>{categoria}</Typography>
-                        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 2 }}>
+                        <Typography 
+                            variant="h4" 
+                            gutterBottom 
+                            sx={{
+                                position: 'relative',
+                                paddingBottom: '10px', // Espacio entre el texto y la línea
+                                marginBottom: '20px', // Espacio después de la línea
+                                '&::after': {
+                                    content: '""',
+                                    position: 'absolute',
+                                    bottom: 0,
+                                    left: 0,
+                                    width: '100%',
+                                    height: '2px', // Grosor de la línea
+                                    backgroundColor: '#000000', // Color de la línea
+                                    borderRadius: '1px' // Bordes suavizados
+                                }
+                            }}
+                        >
+                            {categoria}
+                        </Typography>
+                        <Box sx={{ 
+                            display: 'grid', 
+                            gridTemplateColumns: { 
+                                xs: '1fr', 
+                                sm: 'repeat(2, 1fr)', 
+                                md: 'repeat(3, 1fr)' 
+                            }, 
+                            gap: 2 
+                        }}>
                             {productosPorCategoria[categoria].map(producto => (
                                 <ProductoCard
                                     key={producto._id}

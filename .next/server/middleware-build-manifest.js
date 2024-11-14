@@ -24,6 +24,11 @@ self.__BUILD_MANIFEST = {
       "static/chunks/webpack.js",
       "static/chunks/main.js",
       "static/chunks/pages/crearmenu.js"
+    ],
+    "/pedir": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/pedir.js"
     ]
   },
   "ampFirstPages": []

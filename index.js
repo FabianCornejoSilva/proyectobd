@@ -9,17 +9,25 @@ require('dotenv').config();
 const app = express();
 const port = 3000;
 
-// Configuración de multer
+// Configuración de multer para manejar la subida de archivos
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'public/imagenes/menu'); // Carpeta donde se guardarán las imágenes
+    destination: function (req, file, cb) {
+        cb(null, path.join(__dirname, 'public/imagenes/menu'));
     },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname)); // Renombrar archivo con timestamp
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + '-' + file.originalname);
     }
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({ 
+    storage: storage,
+    fileFilter: function (req, file, cb) {
+        if (!file) {
+            return cb(null, false);
+        }
+        cb(null, true);
+    }
+});
 
 // Middleware
 app.use(cors());
@@ -102,20 +110,35 @@ app.get('/productos', async (req, res) => {
 
 // Agregar un nuevo producto
 app.post('/productos', upload.single('imagen'), async (req, res) => {
-    const { nombre, descripcion, precio, categoriaId, categoriaNombre } = req.body;
-    const imagen = req.file.filename; // Obtener el nombre del archivo de la imagen
-
-    const nuevoProducto = new Producto({
-        nombre,
-        descripcion,
-        precio,
-        categoria: {
-            id: categoriaId, // ID de la categoría
-            nombre: categoriaNombre // Nombre de la categoría
-        },
-        imagen
-    });
     try {
+        const { nombre, descripcion, precio, categoriaNombre } = req.body;
+
+        if (!req.file) {
+            return res.status(400).json({ 
+                error: 'Se requiere una imagen para el producto' 
+            });
+        }
+
+        const imagen = req.file.filename;
+        
+        // Encontrar la categoría
+        const categoria = await Categoria.findOne({ nombre_categoria: categoriaNombre });
+        if (!categoria) {
+            return res.status(400).json({ error: 'Categoría no encontrada' });
+        }
+
+        const nuevoProducto = new Producto({
+            nombre,
+            descripcion,
+            precio: Number(precio),
+            imagen,
+            categoria: {
+                id: categoria._id,
+                nombre: categoria.nombre_categoria
+            },
+            enMenu: false
+        });
+
         await nuevoProducto.save();
         res.status(201).send('Producto agregado con éxito');
     } catch (err) {
@@ -210,46 +233,88 @@ app.put('/categorias/:id', async (req, res) => {
     }
 });
 
-// Agregar esta ruta en el backend
+// Ruta PUT para actualizar productos
 app.put('/productos/:id', upload.single('imagen'), async (req, res) => {
     try {
         const { id } = req.params;
-        const { nombre, descripcion, precio, categoriaId, categoriaNombre } = req.body;
+        const { nombre, descripcion, precio, categoriaNombre } = req.body;
+        
+        console.log('Datos recibidos:', req.body); // Para debug
+
+        // Encontrar la categoría por nombre
+        const categoria = await Categoria.findOne({ nombre_categoria: categoriaNombre });
         
         const updateData = {
             nombre,
             descripcion,
-            precio,
+            precio: Number(precio),
             categoria: {
-                id: categoriaId,
+                id: categoria ? categoria._id : null,
                 nombre: categoriaNombre
             }
         };
 
-        // Si hay una nueva imagen
+        // Verificar si hay una nueva imagen
         if (req.file) {
             // Eliminar la imagen anterior
             const productoAnterior = await Producto.findById(id);
             if (productoAnterior && productoAnterior.imagen) {
                 const imagePath = path.join(__dirname, 'public', 'imagenes', 'menu', productoAnterior.imagen);
-                fs.unlink(imagePath, (err) => {
-                    if (err) console.error("Error al eliminar la imagen anterior:", err);
-                });
+                try {
+                    await fs.promises.unlink(imagePath);
+                } catch (err) {
+                    console.error("Error al eliminar la imagen anterior:", err);
+                }
             }
             updateData.imagen = req.file.filename;
         }
 
+        console.log('Datos a actualizar:', updateData); // Para debug
+
         const productoActualizado = await Producto.findByIdAndUpdate(
             id,
             updateData,
-            { new: true }
+            { new: true, runValidators: true }
         );
 
+        if (!productoActualizado) {
+            return res.status(404).json({ error: 'Producto no encontrado' });
+        }
+
+        console.log('Producto actualizado:', productoActualizado); // Para debug
         res.json(productoActualizado);
     } catch (error) {
-        console.error(error);
-        res.status(500).send('Error al actualizar el producto');
+        console.error('Error al actualizar el producto:', error);
+        res.status(500).json({ 
+            error: 'Error al actualizar el producto',
+            details: error.message 
+        });
     }
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'OK' });
+});
+
+// Manejo de errores global
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({
+        error: 'Error interno del servidor',
+        details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+});
+
+// Manejo de proceso
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception:', err);
+    // Registrar el error pero mantener el servidor funcionando
+});
+
+process.on('unhandledRejection', (err) => {
+    console.error('Unhandled Rejection:', err);
+    // Registrar el error pero mantener el servidor funcionando
 });
 
 // Iniciar el servidor

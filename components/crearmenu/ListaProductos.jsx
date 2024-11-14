@@ -128,7 +128,6 @@ const ListaProductos = ({ productos, categorias, onDelete, onToggleMenu, onEdit 
                 {productosFinales.length > 0 ? (
                     productosFinales.map((producto) => {
                         const enMenu = producto.enMenu || false;
-                        // Obtener el nombre de la categoría del objeto categoria
                         const nombreCategoria = producto.categoria?.nombre || 'Sin categoría';
                         
                         return (
@@ -136,8 +135,8 @@ const ListaProductos = ({ productos, categorias, onDelete, onToggleMenu, onEdit 
                                 <Card 
                                     sx={{ 
                                         display: 'flex', 
-                                        flexDirection: 'column', 
-                                        alignItems: 'flex-start', 
+                                        flexDirection: 'column',
+                                        height: '400px',
                                         padding: 1, 
                                         boxShadow: 3, 
                                         borderRadius: 2, 
@@ -148,46 +147,47 @@ const ListaProductos = ({ productos, categorias, onDelete, onToggleMenu, onEdit 
                                         }
                                     }} 
                                 >
-                                    <IconButton
-                                        onClick={() => onDelete(producto._id)}
-                                        sx={{
-                                            position: 'absolute',
-                                            top: '8px',
-                                            right: '8px',
-                                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                                            '&:hover': {
-                                                backgroundColor: 'rgba(255, 255, 255, 1)',
-                                                color: '#d32f2f'
-                                            },
-                                            zIndex: 1
-                                        }}
-                                    >
-                                        <DeleteIcon />
-                                    </IconButton>
-
-                                    <IconButton
-                                        onClick={() => handleEditClick(producto)}
-                                        sx={{
-                                            position: 'absolute',
-                                            top: '8px',
-                                            right: '48px', // Posicionado a la izquierda del botón eliminar
-                                            backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                                            '&:hover': {
-                                                backgroundColor: 'rgba(255, 255, 255, 1)',
-                                                color: '#1976d2'
-                                            },
-                                            zIndex: 1
-                                        }}
-                                    >
-                                        <EditIcon />
-                                    </IconButton>
+                                    <div style={{
+                                        position: 'absolute',
+                                        top: '8px',
+                                        right: '8px',
+                                        zIndex: 2,
+                                        display: 'flex',
+                                        gap: '8px',
+                                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                        borderRadius: '4px',
+                                        padding: '4px'
+                                    }}>
+                                        <IconButton
+                                            onClick={() => handleEditClick(producto)}
+                                            size="small"
+                                            sx={{
+                                                '&:hover': {
+                                                    color: '#1976d2'
+                                                }
+                                            }}
+                                        >
+                                            <EditIcon />
+                                        </IconButton>
+                                        <IconButton
+                                            onClick={() => onDelete(producto._id)}
+                                            size="small"
+                                            sx={{
+                                                '&:hover': {
+                                                    color: '#d32f2f'
+                                                }
+                                            }}
+                                        >
+                                            <DeleteIcon />
+                                        </IconButton>
+                                    </div>
 
                                     <div style={{ 
                                         display: 'flex', 
                                         justifyContent: 'center', 
                                         alignItems: 'center', 
                                         width: '100%', 
-                                        height: '150px',
+                                        height: '200px',
                                         position: 'relative'
                                     }}>
                                         <img 
