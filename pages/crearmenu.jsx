@@ -60,15 +60,29 @@ const CrearMenu = () => {
     }, []);
 
     const handleSubmitProducto = async (formData) => {
-        const response = await fetch('http://localhost:3000/productos', {
-            method: 'POST',
-            body: formData,
-        });
+        try {
+            // Verificar que formData tenga todos los campos necesarios
+            if (!formData.get('imagen')) {
+                console.error('No se ha seleccionado ninguna imagen');
+                // Aquí podrías mostrar un mensaje al usuario
+                return;
+            }
 
-        if (response.ok) {
-            await fetchProductos();
-        } else {
-            console.error('Error al agregar el producto');
+            const response = await fetch('http://localhost:3000/productos', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Error al crear el producto');
+            }
+
+            await fetchProductos(); // Recargar la lista de productos
+            
+        } catch (error) {
+            console.error('Error al agregar el producto:', error);
+            // Aquí podrías mostrar un mensaje de error al usuario
         }
     };
 
@@ -170,6 +184,25 @@ const CrearMenu = () => {
             console.error('Error:', error);
         }
     };
+
+    // Función para reconectar si el servidor se cae
+    const checkServerConnection = async () => {
+        try {
+            const response = await fetch('http://localhost:3000/health');
+            if (!response.ok) {
+                console.log('Servidor no disponible, reintentando...');
+                setTimeout(checkServerConnection, 5000); // Reintentar cada 5 segundos
+            }
+        } catch (error) {
+            console.log('Error de conexión, reintentando...');
+            setTimeout(checkServerConnection, 5000);
+        }
+    };
+
+    // Agregar un endpoint de health check en el backend
+    useEffect(() => {
+        checkServerConnection();
+    }, []);
 
     return (
         <div style={{ backgroundColor: '#ffffff' }}>

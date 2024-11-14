@@ -8,13 +8,13 @@ const Conocenos = () => {
     return (
         <Box>
             {/* Primer banner */}
-            <Box sx={{ my: 2, textAlign: 'center', maxWidth: '600px', margin: '0 auto' }}> {/* Limita el ancho del banner */}
+            <Box sx={{ my: 2, textAlign: 'center', maxWidth: '600px', margin: '0 auto' }}>
                 <Image
                     src={bannerImage}
                     alt="Logo de la Cafetería"
-                    layout="intrinsic" // Cambiado a intrinsic para un tamaño fijo
-                    width={600} // Ajusta el tamaño según sea necesario
-                    height={200} // Ajusta el tamaño según sea necesario
+                    layout="responsive"
+                    width={500}
+                    height={800}
                 />
             </Box>
 
@@ -22,17 +22,17 @@ const Conocenos = () => {
             <Box sx={{ textAlign: 'center', mb: 4 }}>
                 <Button
                     variant="contained"
-                    color= "black"
+                    color="black"
                     href="/pedir" 
                     sx={{
                         backgroundColor: "black",
-                        color: "white", // Corrige 'withe' a 'white'
+                        color: "white",
                         fontSize: '1.5rem',
                         padding: '10px 20px',
                         borderRadius: '5px',
                     }}
                 >
-                    Pedir Aquí
+                    Conócenos
                 </Button>
             </Box>
 
@@ -53,16 +53,27 @@ const Conocenos = () => {
                         gutterBottom 
                         sx={{ 
                             fontWeight: 'bold',
-                            textShadow: '2px 2px 4px rgba(0, 0, 0, 0.7)', // Sombra para el contorno
+                            textShadow: '2px 2px 4px rgba(0, 0, 0, 0.7)',
+                            position: 'relative', // Para el subrayado
                         }}
                     >
                         Conócenos
+                        <Box 
+                            sx={{
+                                position: 'absolute',
+                                bottom: '-5px', // Ajusta la posición del subrayado
+                                left: 0,
+                                right: 0,
+                                height: '2px', // Grosor del subrayado
+                                backgroundColor: 'white', // Color del subrayado
+                            }}
+                        />
                     </Typography>
                     <Typography 
                         variant="h5" 
                         gutterBottom 
                         sx={{ 
-                            textShadow: '1px 1px 2px rgba(0, 0, 0, 0.7)', // Sombra para el contorno
+                            textShadow: '1px 1px 2px rgba(0, 0, 0, 0.7)',
                         }}
                     >
                         Bienvenidos a nuestra cafetería, un lugar donde la pasión por el café y la calidez del hogar se combinan para ofrecerte una experiencia única. Desde nuestros inicios, nos hemos comprometido a seleccionar los mejores granos de café, y a prepararlos con amor y dedicación.
@@ -71,7 +82,7 @@ const Conocenos = () => {
                         variant="h5" 
                         gutterBottom 
                         sx={{ 
-                            textShadow: '1px 1px 2px rgba(0, 0, 0, 0.7)', // Sombra para el contorno
+                            textShadow: '1px 1px 2px rgba(0, 0, 0, 0.7)',
                         }}
                     >
                         Nuestra misión es brindarte un espacio acogedor donde puedas disfrutar de un delicioso café, acompañado de pasteles y bocados elaborados con ingredientes frescos y de alta calidad. Creemos en la importancia de ofrecer no solo productos deliciosos, sino también un ambiente en el que nuestros clientes se sientan como en casa.
@@ -80,7 +91,7 @@ const Conocenos = () => {
                         variant="h5" 
                         gutterBottom 
                         sx={{ 
-                            textShadow: '1px 1px 2px rgba(0, 0, 0, 0.7)', // Sombra para el contorno
+                            textShadow: '1px 1px 2px rgba(0, 0, 0, 0.7)',
                         }}
                     >
                         En nuestra cafetería, cada taza de café cuenta una historia. Te invitamos a venir, relajarte y disfrutar de la compañía de amigos y familiares. ¡Esperamos verte pronto!

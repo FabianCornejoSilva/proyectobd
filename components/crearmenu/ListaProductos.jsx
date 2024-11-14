@@ -219,7 +219,7 @@ const ListaProductos = ({ productos, categorias, onDelete, onToggleMenu, onEdit 
                                         <Typography variant="body2" color={enMenu ? 'text.primary' : 'text.secondary'}>
                                             Categoría: {nombreCategoria}
                                         </Typography>
-                                        <Typography variant="body2" sx={{ marginTop: 1 }} color={enMenu ? 'text.primary' : 'text.secondary'}>
+                                        <Typography variant="body2" sx={{ marginTop: 3 }} color={enMenu ? 'text.primary' : 'text.secondary'}>
                                             {producto.descripcion}
                                         </Typography>
                                     </CardContent>

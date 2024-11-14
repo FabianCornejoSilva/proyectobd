@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import {
     TextField,
     Button,
@@ -17,7 +17,6 @@ const FormularioProducto = ({ categorias, onSubmit }) => {
     const [descripcion, setDescripcion] = useState('');
     const [imagen, setImagen] = useState(null);
     const [imagenPreview, setImagenPreview] = useState(null);
-    const formRef = useRef(null);
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -29,22 +28,33 @@ const FormularioProducto = ({ categorias, onSubmit }) => {
         }
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
-        const formData = new FormData(e.target);
+        const formData = new FormData();
+        formData.append('imagen', imagen);
+        formData.append('nombre', nombre);
+        formData.append('precio', precio);
         
-        try {
-            await onSubmit(formData);
-            // Limpiar el formulario después de un envío exitoso
-            formRef.current.reset();
-            // Limpiar el campo de archivo específicamente
-            const fileInput = formRef.current.querySelector('input[type="file"]');
-            if (fileInput) {
-                fileInput.value = '';
-            }
-        } catch (error) {
-            console.error('Error al enviar el formulario:', error);
+        // Encontrar la categoría seleccionada
+        const categoriaSeleccionada = categorias.find(cat => cat.nombre_categoria === categoriaNombre);
+        
+        // Agregar tanto el ID como el nombre de la categoría
+        if (categoriaSeleccionada) {
+            formData.append('categoriaId', categoriaSeleccionada._id);
+            formData.append('categoriaNombre', categoriaSeleccionada.nombre_categoria);
         }
+        
+        formData.append('descripcion', descripcion);
+
+        onSubmit(formData);
+
+        // Resetear el formulario
+        setNombre('');
+        setPrecio(0);
+        setCategoriaNombre('');
+        setDescripcion('');
+        setImagen(null);
+        setImagenPreview(null);
     };
 
     return (
@@ -52,7 +62,7 @@ const FormularioProducto = ({ categorias, onSubmit }) => {
             maxWidth: '600px',
             margin: '0 auto'
         }}>
-            <form onSubmit={handleSubmit} ref={formRef}>
+            <form onSubmit={handleSubmit}>
                 <Box sx={{ 
                     display: 'grid', 
                     gap: 2,
@@ -118,14 +128,10 @@ const FormularioProducto = ({ categorias, onSubmit }) => {
                     }}>
                         <input
                             type="file"
-                            name="imagen"
                             accept="image/*"
                             onChange={handleImageChange}
                             required
-                            style={{
-                                marginBottom: '20px',
-                                width: '100%'
-                            }}
+                            style={{ margin: '8px 0' }}
                         />
                         {imagenPreview && (
                             <img
