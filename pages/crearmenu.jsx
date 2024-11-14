@@ -1,9 +1,26 @@
 import { useEffect, useState } from 'react';
 import FormularioProducto from '../components/crearmenu/FormularioProducto';
 import ListaProductos from '../components/crearmenu/ListaProductos';
-import ListaCategorias from '../components/crearmenu/ListaCategorias';
 import FormularioCategoria from '../components/crearmenu/FormularioCategoria';
-import { Grid, Container } from '@mui/material';
+import { Container, Grid, Box, Divider } from '@mui/material';
+
+const commonBoxStyles = {
+    backgroundColor: '#ffffff',
+    borderRadius: '8px',
+    padding: '20px',
+    border: '1px solid #e8e8e8',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+    height: '100%'
+};
+
+const commonTitleStyles = {
+    margin: '0 0 20px 0',
+    color: '#333',
+    fontSize: '1.5rem',
+    textAlign: 'center',
+    paddingBottom: '10px',
+    borderBottom: '1px solid #f0f0f0'
+};
 
 const CrearMenu = () => {
     const [productos, setProductos] = useState([]);
@@ -49,7 +66,7 @@ const CrearMenu = () => {
         });
 
         if (response.ok) {
-            await fetchProductos(); // Actualiza la lista de productos
+            await fetchProductos();
         } else {
             console.error('Error al agregar el producto');
         }
@@ -115,45 +132,115 @@ const CrearMenu = () => {
         }
     };
 
+    const handleEditCategoria = async (id, nuevoNombre) => {
+        try {
+            const response = await fetch(`http://localhost:3000/categorias/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ nombre_categoria: nuevoNombre }),
+            });
+
+            if (response.ok) {
+                await fetchCategorias(); // Actualizar la lista
+            } else {
+                console.error('Error al editar la categoría');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+
+    const handleEditProducto = async (id, formData) => {
+        try {
+            console.log("Editando producto:", id); // Para debug
+            const response = await fetch(`http://localhost:3000/productos/${id}`, {
+                method: 'PUT',
+                body: formData
+            });
+
+            if (response.ok) {
+                console.log("Producto actualizado exitosamente");
+                await fetchProductos(); // Recargar la lista de productos
+            } else {
+                console.error('Error al editar el producto');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+
     return (
-        <div>
-            {/* Banner negro en la parte superior que cubre todo el ancho de la página */}
+        <div style={{ backgroundColor: '#ffffff' }}>
             <div style={{
                 position: 'fixed',
                 top: 0,
                 left: 0,
                 width: '100%',
-                backgroundColor: 'black',
+                backgroundColor: '#000000',
                 color: 'white',
-                padding: '25px',
+                padding: '15px',
                 textAlign: 'center',
-                zIndex: 1000
+                zIndex: 1000,
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
             }}>
-                <h1>Panel de Creación de Menú</h1>
+                <h1 style={{ 
+                    margin: 0,
+                    fontSize: '1.8rem',
+                    fontWeight: 'bold'
+                }}>
+                    Panel de Creación de Menú
+                </h1>
             </div>
 
-            {/* Contenido principal con margen superior para evitar superposición con el banner */}
-            <Container style={{ marginTop: '100px' }}>
-                <h2>Categorías</h2>
-                <Grid container alignItems="center" spacing={2}>
-                    <Grid item xs={12} sm={8}>
-                        <ListaCategorias categorias={categorias} onDelete={handleDeleteCategoria} />
+            <Container style={{ 
+                marginTop: '80px',
+                paddingBottom: '40px'
+            }}>
+                <Grid container spacing={3}>
+                    <Grid item xs={12} md={7}>
+                        <Box sx={commonBoxStyles}>
+                            <h2 style={commonTitleStyles}>
+                                Agregar Producto
+                            </h2>
+                            <FormularioProducto 
+                                categorias={categorias} 
+                                onSubmit={handleSubmitProducto} 
+                            />
+                        </Box>
                     </Grid>
-                    <Grid item xs={12} sm={4}>
-                        <FormularioCategoria onSubmit={handleAddCategoria} />
+
+                    <Grid item xs={12} md={5}>
+                        <Box sx={commonBoxStyles}>
+                            <h2 style={commonTitleStyles}>
+                                Gestión de Categorías
+                            </h2>
+                            <FormularioCategoria 
+                                categorias={categorias}
+                                onSubmit={handleAddCategoria}
+                                onDelete={handleDeleteCategoria}
+                                onEdit={handleEditCategoria}
+                            />
+                        </Box>
                     </Grid>
                 </Grid>
 
-                <h2>Agregar Producto</h2>
-                <FormularioProducto categorias={categorias} onSubmit={handleSubmitProducto} />
-
-                <h2>Productos</h2>
-                <ListaProductos
-                    productos={productos}
-                    categorias={categorias}
-                    onDelete={handleDelete}
-                    onToggleMenu={handleToggleMenu} // Pasa la función aquí
-                />
+                <Box sx={{ 
+                    marginTop: 4,
+                    ...commonBoxStyles
+                }}>
+                    <h2 style={commonTitleStyles}>
+                        Productos
+                    </h2>
+                    <ListaProductos
+                        productos={productos}
+                        categorias={categorias}
+                        onDelete={handleDelete}
+                        onToggleMenu={handleToggleMenu}
+                        onEdit={handleEditProducto}
+                    />
+                </Box>
             </Container>
         </div>
     );

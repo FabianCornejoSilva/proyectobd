@@ -6,10 +6,9 @@ import {
     MenuItem,
     InputLabel,
     FormControl,
-    Card,
-    CardContent,
-    Typography,
+    Box,
 } from '@mui/material';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 
 const FormularioProducto = ({ categorias, onSubmit }) => {
     const [nombre, setNombre] = useState('');
@@ -35,9 +34,17 @@ const FormularioProducto = ({ categorias, onSubmit }) => {
         formData.append('imagen', imagen);
         formData.append('nombre', nombre);
         formData.append('precio', precio);
-        formData.append('categoriaNombre', categoriaNombre);
+        
+        // Encontrar la categoría seleccionada
+        const categoriaSeleccionada = categorias.find(cat => cat.nombre_categoria === categoriaNombre);
+        
+        // Agregar tanto el ID como el nombre de la categoría
+        if (categoriaSeleccionada) {
+            formData.append('categoriaId', categoriaSeleccionada._id);
+            formData.append('categoriaNombre', categoriaSeleccionada.nombre_categoria);
+        }
+        
         formData.append('descripcion', descripcion);
-        // Eliminar el estado de "enMenu" ya que no se necesita
 
         onSubmit(formData);
 
@@ -51,32 +58,39 @@ const FormularioProducto = ({ categorias, onSubmit }) => {
     };
 
     return (
-        <Card variant="outlined" sx={{ margin: 1, padding: 2, maxWidth: 400 }}>
-            <CardContent>
-                <Typography variant="h6" component="div" gutterBottom>
-                    Agregar Producto
-                </Typography>
-                <form onSubmit={handleSubmit}>
+        <div style={{ 
+            maxWidth: '600px',
+            margin: '0 auto'
+        }}>
+            <form onSubmit={handleSubmit}>
+                <Box sx={{ 
+                    display: 'grid', 
+                    gap: 2,
+                    gridTemplateColumns: '1fr 1fr',
+                    '& .MuiTextField-root': { backgroundColor: 'white' },
+                    '& .MuiFormControl-root': { backgroundColor: 'white' }
+                }}>
+                    {/* Nombre del producto */}
                     <TextField
-                        label="Nombre"
+                        label="Nombre del producto"
                         variant="outlined"
-                        fullWidth
                         value={nombre}
                         onChange={(e) => setNombre(e.target.value)}
                         required
-                        margin="dense"
+                        size="small"
+                        sx={{ gridColumn: 'span 2' }}
                     />
                     <TextField
                         label="Precio"
                         variant="outlined"
-                        fullWidth
                         type="number"
                         value={precio}
                         onChange={(e) => setPrecio(e.target.value)}
                         required
-                        margin="dense"
+                        size="small"
+                        sx={{ gridColumn: 'span 2' }}
                     />
-                    <FormControl fullWidth required margin="dense">
+                    <FormControl fullWidth required size="small" sx={{ gridColumn: 'span 2' }}>
                         <InputLabel id="categoria-select-label">Categoría</InputLabel>
                         <Select
                             labelId="categoria-select-label"
@@ -97,44 +111,67 @@ const FormularioProducto = ({ categorias, onSubmit }) => {
                     <TextField
                         label="Descripción"
                         variant="outlined"
-                        fullWidth
                         multiline
                         rows={2}
                         value={descripcion}
                         onChange={(e) => setDescripcion(e.target.value)}
                         required
-                        margin="dense"
+                        size="small"
+                        sx={{ gridColumn: 'span 2' }}
                     />
-                    <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageChange}
-                        required
-                        style={{ margin: '8px 0' }}
-                    />
-                    {imagenPreview && (
-                        <img
-                            src={imagenPreview}
-                            alt="Vista previa"
-                            style={{
-                                width: '100%',
-                                maxHeight: '200px',
-                                objectFit: 'contain',
-                                margin: '8px 0',
-                            }}
+
+                    <Box sx={{ 
+                        gridColumn: 'span 2',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 2
+                    }}>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            required
+                            style={{ margin: '8px 0' }}
                         />
-                    )}
+                        {imagenPreview && (
+                            <img
+                                src={imagenPreview}
+                                alt="Vista previa"
+                                style={{
+                                    width: '100%',
+                                    maxHeight: '200px',
+                                    objectFit: 'contain',
+                                    margin: '8px 0',
+                                }}
+                            />
+                        )}
+                    </Box>
+
+                    <Box sx={{ 
+                        gridColumn: 'span 2',
+                        height: '20px'
+                    }} />
+
                     <Button
                         variant="contained"
-                        sx={{ backgroundColor: 'black', color: 'white' }}
+                        sx={{ 
+                            backgroundColor: '#1976d2',
+                            color: 'white',
+                            '&:hover': {
+                                backgroundColor: '#1565c0'
+                            },
+                            gridColumn: 'span 2',
+                            height: '40px',
+                            marginTop: '10px'
+                        }}
                         type="submit"
                         fullWidth
                     >
                         Agregar
                     </Button>
-                </form>
-            </CardContent>
-        </Card>
+                </Box>
+            </form>
+        </div>
     );
 };
 

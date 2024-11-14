@@ -34,18 +34,18 @@ mongoose.connect(process.env.MONGODB_URI)
         console.error("Error al conectar a MongoDB:", err);
     });
 
-// Definición del modelo para Productos
+
 // Definición del modelo para Productos
 const Producto = mongoose.model('Producto', new mongoose.Schema({
     nombre: String,
     descripcion: String,
     precio: Number,
     categoria: {
-        id: { type: mongoose.Schema.Types.ObjectId, ref: 'Categoria' }, // Referencia a la categoría
-        nombre: String // Campo adicional para el nombre de la categoría
+        id: { type: mongoose.Schema.Types.ObjectId, ref: 'Categoria' },
+        nombre: String 
     },
     imagen: String,
-    enMenu: { type: Boolean, default: false } // Nuevo campo para el menú
+    enMenu: { type: Boolean, default: false } 
 }));
 
 // Definición del modelo para Categorías
@@ -165,6 +165,89 @@ app.patch('/productos/:id/toggleMenu', async (req, res) => {
         await producto.save();
         res.json(producto);
     } catch (error) {
+        res.status(500).send('Error al actualizar el producto');
+    }
+});
+
+// Agregar esta ruta en tu archivo del servidor
+app.put('/categorias/:id', async (req, res) => {
+    const { id } = req.params;
+    const { nombre_categoria } = req.body;
+
+    try {
+        // Verificar si el nuevo nombre ya existe en otra categoría
+        const categoriaExistente = await Categoria.findOne({
+            _id: { $ne: id }, // excluir la categoría actual
+            nombre_categoria: { 
+                $regex: new RegExp(`^${nombre_categoria}$`, 'i') 
+            }
+        });
+
+        if (categoriaExistente) {
+            return res.status(400).json({ 
+                error: 'Ya existe una categoría con este nombre' 
+            });
+        }
+
+        const categoriaActualizada = await Categoria.findByIdAndUpdate(
+            id,
+            { nombre_categoria },
+            { new: true }
+        );
+
+        if (!categoriaActualizada) {
+            return res.status(404).json({ 
+                error: 'Categoría no encontrada' 
+            });
+        }
+
+        res.json(categoriaActualizada);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ 
+            error: 'Error al actualizar la categoría' 
+        });
+    }
+});
+
+// Agregar esta ruta en el backend
+app.put('/productos/:id', upload.single('imagen'), async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nombre, descripcion, precio, categoriaId, categoriaNombre } = req.body;
+        
+        const updateData = {
+            nombre,
+            descripcion,
+            precio,
+            categoria: {
+                id: categoriaId,
+                nombre: categoriaNombre
+            }
+        };
+
+        // Si hay una nueva imagen
+        if (req.file) {
+            // Eliminar la imagen anterior
+            const productoAnterior = await Producto.findById(id);
+            if (productoAnterior && productoAnterior.imagen) {
+                const imagePath = path.join(__dirname, 'public', 'imagenes', 'menu', productoAnterior.imagen);
+                fs.unlink(imagePath, (err) => {
+                    if (err) console.error("Error al eliminar la imagen anterior:", err);
+                });
+            }
+            updateData.imagen = req.file.filename;
+        }
+
+        const productoActualizado = await Producto.findByIdAndUpdate(
+            id,
+            updateData,
+            { new: true }
+        );
+
+        res.json(productoActualizado);
+    } catch (error) {
+        console.error(error);
         res.status(500).send('Error al actualizar el producto');
     }
 });
