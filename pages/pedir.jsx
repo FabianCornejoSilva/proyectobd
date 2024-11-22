@@ -109,12 +109,25 @@ const Pedir = () => {
                         variant="h6"
                         sx={{
                             cursor: 'pointer',
-                            marginRight: 50,
+                            margincenter: 50,
                             fontSize: '2rem',
                             fontWeight: 'bold' // Pone el texto en negrita
                         }}
                     >
                         Conócenos
+                    </Typography>
+                </Link>
+                <Link href="/login" passHref>
+                    <Typography
+                        variant="h6"
+                        sx={{
+                            cursor: 'pointer',
+                            marginRight: 50,
+                            fontSize: '2rem',
+                            fontWeight: 'bold' // Pone el texto en negrita
+                        }}
+                    >
+                        Login
                     </Typography>
                 </Link>
             </Box>
