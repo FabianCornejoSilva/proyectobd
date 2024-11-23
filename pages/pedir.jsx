@@ -17,9 +17,21 @@ const Pedir = () => {
     const [categorias, setCategorias] = useState([]);
     const [categoriaActual, setCategoriaActual] = useState('');
     const [indexBanner, setIndexBanner] = useState(0); // Estado para la imagen del banner
+    const [usuario, setUsuario] = useState(null);
 
     // Imágenes del banner
     const banners = [tercerBannerImage, segundoBannerImage]; // Añade más imágenes si es necesario
+
+    useEffect(() => {
+        // Verificar si hay un usuario logueado
+        const usuarioGuardado = localStorage.getItem('usuario');
+        if (usuarioGuardado) {
+            setUsuario(JSON.parse(usuarioGuardado));
+        } else {
+            // Si no hay usuario, redirigir al login
+            window.location.href = '/login';
+        }
+    }, []);
 
     useEffect(() => {
         const fetchProductos = async () => {
@@ -75,6 +87,10 @@ const Pedir = () => {
             setCategoriaActual(categoria);
         }
     };
+
+    if (!usuario) {
+        return <div>Cargando...</div>;
+    }
 
     return (
         <>

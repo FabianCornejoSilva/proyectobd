@@ -2,7 +2,8 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/conocenos": "pages/conocenos.js",
+  "/login": "pages/login.js",
   "/pedir": "pages/pedir.js",
-  "/login": "pages/login.js"
+  "/api/auth/login": "pages/api/auth/login.js",
+  "/conocenos": "pages/conocenos.js"
 }
