@@ -275,6 +275,28 @@ const Pedir = () => {
                                     </Typography>
                                 </Box>
                             </Link>
+                            <Link href="/login" passHref>
+                                <Box sx={{
+                                    backgroundColor: 'white',
+                                    color: 'black',
+                                    padding: { xs: '4px 12px', sm: '8px 16px' },
+                                    borderRadius: '20px',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s ease',
+                                    '&:hover': {
+                                        transform: 'scale(1.05)',
+                                        boxShadow: '0 0 10px rgba(255,255,255,0.3)'
+                                    }
+                                }}>
+                                    <Typography sx={{
+                                        fontSize: { xs: '0.8rem', sm: '0.9rem' },
+                                        fontWeight: 'bold',
+                                        whiteSpace: 'nowrap'
+                                    }}>
+                                        Iniciar sesión
+                                    </Typography>
+                                </Box>
+                            </Link>
 
                             <Link href="/conocenos" passHref>
                                 <Box sx={{
