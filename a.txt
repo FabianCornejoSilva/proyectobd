@@ -1,0 +1,16 @@
+CREATE TABLE prueba (
+    id SERIAL,  
+    correo  VARCHAR(255) primary KEY UNIQUE NOT NULL,
+    contraseña VARCHAR(255) NOT NULL,
+    admin BOOLEAN NOT NULL,
+    nombre VARCHAR(255) NOT NULL
+);
+
+select * from prueba
+
+
+
+
+INSERT INTO prueba (correo, contraseña, admin, nombre) VALUES
+('admin@gmail.com', 'contraseñasecreta123', true, 'Juan Perez'),
+('hola@a.com', '123', false, 'Maria Gomez');

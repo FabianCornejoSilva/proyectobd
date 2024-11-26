@@ -22,7 +22,9 @@ export default async function handler(req, res) {
             text: `
                 SELECT 
                     correo as email, 
-                    contraseña as password 
+                    contraseña as password,
+                    nombre as name,
+                    admin
                 FROM usuario 
                 WHERE correo = $1
             `,
@@ -49,20 +51,26 @@ export default async function handler(req, res) {
             });
         }
 
-        // Si todo está correcto, generar token
+        // Si todo está correcto, generar token con información adicional
         const token = jwt.sign(
-            { email: usuario.email },
+            { 
+                email: usuario.email,
+                name: usuario.name,
+                admin: usuario.admin
+            },
             process.env.JWT_SECRET || 'tu_clave_secreta_temporal',
             { expiresIn: '8h' }
         );
 
-        // Devolver respuesta exitosa
+        // Devolver respuesta exitosa con información adicional
         return res.status(200).json({
             success: true,
             message: 'Inicio de sesión exitoso',
             token,
             user: {
-                email: usuario.email
+                email: usuario.email,
+                name: usuario.name,
+                admin: usuario.admin
             }
         });
 
@@ -75,3 +83,4 @@ export default async function handler(req, res) {
         });
     }
 }
+        

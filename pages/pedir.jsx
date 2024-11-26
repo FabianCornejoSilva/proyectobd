@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
-import { Box, Typography, Container, TextField, IconButton, Divider } from '@mui/material';
+import { Box, Typography, Container, TextField, IconButton, Divider, Badge, Button, Menu, MenuItem } from '@mui/material';
 import Image from 'next/image';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import bannerImage from '../public/imagenes/logo.png';
@@ -13,12 +13,15 @@ import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import SearchIcon from '@mui/icons-material/Search';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
+import Carrito from '../components/pedir/Carrito';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import LogoutIcon from '@mui/icons-material/Logout';
+import Sesion from '../components/pedir/Sesion';
 
 const Pedir = () => {
     const [productos, setProductos] = useState([]);
     const [busquedaActiva, setBusquedaActiva] = useState(false);
     const [productoBusqueda, setProductoBusqueda] = useState('');
-    const [total, setTotal] = useState(0);
     const [categorias, setCategorias] = useState([]);
     const [categoriaActual, setCategoriaActual] = useState('');
     const [indexBanner, setIndexBanner] = useState(0); // Estado para la imagen del banner
@@ -27,6 +30,15 @@ const Pedir = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [showSearch, setShowSearch] = useState(false);
     const searchRef = useRef(null);
+    const [carrito, setCarrito] = useState([]); // Nuevo estado para los items del carrito
+    const [showCarrito, setShowCarrito] = useState(false); // Estado para mostrar/ocultar el carrito
+    const [usuario, setUsuario] = useState(null);
+    const [anchorEl, setAnchorEl] = useState(null); // Nuevo estado para el menú
+
+    // Calcular el total basado en el carrito
+    const total = useMemo(() => {
+        return carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+    }, [carrito]);
 
     // Imágenes del banner
     const banners = [segundoBannerImage, tercerBannerImage]; // Añade más imágenes si es necesario
@@ -159,7 +171,35 @@ const Pedir = () => {
     }, [productos, productosPorCategoria]);
 
     const agregarAlCarrito = (producto) => {
-        setTotal(prevTotal => prevTotal + producto.precio);
+        setCarrito(prevCarrito => {
+            const itemExistente = prevCarrito.find(item => item._id === producto._id);
+            
+            if (itemExistente) {
+                // Si el producto ya existe, incrementar cantidad
+                return prevCarrito.map(item =>
+                    item._id === producto._id
+                        ? { ...item, cantidad: item.cantidad + 1 }
+                        : item
+                );
+            }
+            // Si es nuevo producto, agregarlo con cantidad 1
+            return [...prevCarrito, { ...producto, cantidad: 1 }];
+        });
+    };
+
+    const removerDelCarrito = (productoId) => {
+        setCarrito(prevCarrito => {
+            const itemExistente = prevCarrito.find(item => item._id === productoId);
+            
+            if (itemExistente.cantidad > 1) {
+                return prevCarrito.map(item =>
+                    item._id === productoId
+                        ? { ...item, cantidad: item.cantidad - 1 }
+                        : item
+                );
+            }
+            return prevCarrito.filter(item => item._id !== productoId);
+        });
     };
 
     const limpiarBusqueda = () => {
@@ -201,6 +241,32 @@ const Pedir = () => {
 
         return () => clearInterval(timer); // Limpia el intervalo cuando el componente se desmonta
     }, []);
+
+    const limpiarCarrito = () => {
+        setCarrito([]);
+    };
+
+    useEffect(() => {
+        // Verificar si hay un usuario en localStorage al cargar
+        const usuarioGuardado = localStorage.getItem('usuario');
+        if (usuarioGuardado) {
+            setUsuario(JSON.parse(usuarioGuardado));
+        }
+    }, []);
+
+    const handleClick = (event) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleClose = () => {
+        setAnchorEl(null);
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('usuario'); // Eliminar usuario del localStorage
+        handleClose(); // Cerrar el menú
+        window.location.reload(); // Recargar la página
+    };
 
     return (
         <Box sx={{ width: '100%' }}>
@@ -247,57 +313,14 @@ const Pedir = () => {
                             }}
                         />
 
-                        {/* Botones */}
+                        {/* Botones condicionales */}
                         <Box sx={{
                             display: 'flex',
                             gap: 2,
                             alignItems: 'center'
                         }}>
-                            <Link href="/pedir" passHref>
-                                <Box sx={{
-                                    backgroundColor: 'white',
-                                    color: 'black',
-                                    padding: { xs: '4px 12px', sm: '8px 16px' },
-                                    borderRadius: '20px',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.3s ease',
-                                    '&:hover': {
-                                        transform: 'scale(1.05)',
-                                        boxShadow: '0 0 10px rgba(255,255,255,0.3)'
-                                    }
-                                }}>
-                                    <Typography sx={{
-                                        fontSize: { xs: '0.8rem', sm: '0.9rem' },
-                                        fontWeight: 'bold',
-                                        whiteSpace: 'nowrap'
-                                    }}>
-                                        PIDE AQUÍ
-                                    </Typography>
-                                </Box>
-                            </Link>
-                            <Link href="/login" passHref>
-                                <Box sx={{
-                                    backgroundColor: 'white',
-                                    color: 'black',
-                                    padding: { xs: '4px 12px', sm: '8px 16px' },
-                                    borderRadius: '20px',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.3s ease',
-                                    '&:hover': {
-                                        transform: 'scale(1.05)',
-                                        boxShadow: '0 0 10px rgba(255,255,255,0.3)'
-                                    }
-                                }}>
-                                    <Typography sx={{
-                                        fontSize: { xs: '0.8rem', sm: '0.9rem' },
-                                        fontWeight: 'bold',
-                                        whiteSpace: 'nowrap'
-                                    }}>
-                                        Iniciar sesión
-                                    </Typography>
-                                </Box>
-                            </Link>
-
+                            <Sesion />
+                            
                             <Link href="/conocenos" passHref>
                                 <Box sx={{
                                     backgroundColor: 'white',
@@ -468,7 +491,11 @@ const Pedir = () => {
                         padding: '8px 16px',
                         borderRadius: '20px',
                         boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                    }}>
+                        cursor: 'pointer',
+                        '&:hover': {
+                            backgroundColor: '#f5f5f5'
+                        }
+                    }} onClick={() => setShowCarrito(!showCarrito)}>
                         <Typography sx={{
                             fontSize: { xs: '0.8rem', sm: '1rem' },
                             fontWeight: 'bold',
@@ -476,10 +503,12 @@ const Pedir = () => {
                         }}>
                             {total.toLocaleString('es-CL')} CLP
                         </Typography>
-                        <ShoppingCartIcon sx={{ 
-                            fontSize: { xs: '1.2rem', sm: '1.5rem' },
-                            color: 'black'
-                        }} />
+                        <Badge badgeContent={carrito.length} color="primary">
+                            <ShoppingCartIcon sx={{ 
+                                fontSize: { xs: '1.2rem', sm: '1.5rem' },
+                                color: 'black'
+                            }} />
+                        </Badge>
                     </Box>
                 </Box>
             </Box>
@@ -677,6 +706,16 @@ const Pedir = () => {
                
                
             </Box>
+
+            {/* Reemplazar el carrito existente con el nuevo componente */}
+            <Carrito 
+                showCarrito={showCarrito}
+                carrito={carrito}
+                total={total}
+                agregarAlCarrito={agregarAlCarrito}
+                removerDelCarrito={removerDelCarrito}
+                limpiarCarrito={limpiarCarrito}
+            />
         </Box>
     );
 };

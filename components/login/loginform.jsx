@@ -37,11 +37,17 @@ const LoginForm = ({ correo, contraseña, setCorreo, setContraseña, handleSubmi
             
             localStorage.setItem('usuario', JSON.stringify({
                 email: data.user.email,
+                name: data.user.name,
+                admin: data.user.admin,
                 token: data.token
             }));
             
             setTimeout(() => {
-                window.location.href = '/pedir';
+                if (data.user.admin) {
+                    window.location.href = '/crearmenu';
+                } else {
+                    window.location.href = '/pedir';
+                }
             }, 1500);
 
         } catch (error) {

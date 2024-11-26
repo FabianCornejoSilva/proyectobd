@@ -6,13 +6,16 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { email, password } = req.body;
+        const { email, password, nombre } = req.body;
 
         // Validaciones básicas
-        if (!email || !password || typeof email !== 'string' || typeof password !== 'string') {
+        if (!email || !password || !nombre || 
+            typeof email !== 'string' || 
+            typeof password !== 'string' || 
+            typeof nombre !== 'string') {
             return res.status(400).json({
                 success: false,
-                message: 'Email y contraseña son requeridos y deben ser texto'
+                message: 'Email, contraseña y nombre son requeridos y deben ser texto'
             });
         }
 
@@ -31,10 +34,10 @@ export default async function handler(req, res) {
             });
         }
 
-        // Insertar nuevo usuario
+        // Insertar nuevo usuario con nombre y admin=false por defecto
         const queryInsertar = {
-            text: 'INSERT INTO usuario (correo, contraseña) VALUES ($1, $2) RETURNING correo',
-            values: [email.trim(), password.trim()]
+            text: 'INSERT INTO usuario (correo, contraseña, admin, nombre) VALUES ($1, $2, $3, $4) RETURNING correo, nombre',
+            values: [email.trim(), password.trim(), false, nombre.trim()]
         };
 
         const resultado = await pool.query(queryInsertar);
@@ -43,7 +46,8 @@ export default async function handler(req, res) {
             success: true,
             message: 'Usuario registrado exitosamente',
             user: {
-                email: resultado.rows[0].correo
+                email: resultado.rows[0].correo,
+                nombre: resultado.rows[0].nombre
             }
         });
 

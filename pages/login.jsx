@@ -99,7 +99,7 @@ const Login = () => {
             <Container maxWidth="sm">
                 <Box
                     sx={{
-                        mt: 8,
+                        mt: 2,
                         mb: 8,
                         backgroundColor: 'white',
                         borderRadius: '15px',
@@ -181,7 +181,7 @@ const Login = () => {
                     backgroundColor: 'black',
                     color: 'white',
                     width: '100%',
-                    padding: '40px 0',
+                    padding: '15px 0',
                     textAlign: 'center',
                     position: 'fixed',
                     bottom: 0

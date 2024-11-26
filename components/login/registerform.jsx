@@ -6,6 +6,7 @@ const RegisterForm = ({ correo, contraseña, setCorreo, setContraseña }) => {
     const [success, setSuccess] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [confirmarContraseña, setConfirmarContraseña] = useState('');
+    const [nombre, setNombre] = useState('');
 
     const handleRegister = async (e) => {
         e.preventDefault();
@@ -13,7 +14,6 @@ const RegisterForm = ({ correo, contraseña, setCorreo, setContraseña }) => {
         setSuccess('');
         setIsLoading(true);
 
-        // Validar que las contraseñas coincidan
         if (contraseña !== confirmarContraseña) {
             setError('Las contraseñas no coinciden');
             setIsLoading(false);
@@ -21,6 +21,7 @@ const RegisterForm = ({ correo, contraseña, setCorreo, setContraseña }) => {
         }
 
         const datos = {
+            nombre: nombre,
             email: correo.toLowerCase(),
             password: contraseña
         };
@@ -43,7 +44,7 @@ const RegisterForm = ({ correo, contraseña, setCorreo, setContraseña }) => {
 
             setSuccess('¡Registro exitoso! Ya puedes iniciar sesión');
             
-            // Limpiar formulario
+            setNombre('');
             setCorreo('');
             setContraseña('');
             setConfirmarContraseña('');
@@ -71,6 +72,20 @@ const RegisterForm = ({ correo, contraseña, setCorreo, setContraseña }) => {
                         {success}
                     </Alert>
                 )}
+
+                <Typography variant="h6" sx={{ mb: 1 }}>
+                    Nombre completo
+                </Typography>
+                <TextField
+                    required
+                    fullWidth
+                    type="text"
+                    variant="outlined"
+                    value={nombre}
+                    onChange={(e) => setNombre(e.target.value)}
+                    placeholder="Juan Pérez"
+                    sx={{ maxWidth: '400px', mb: 3 }}
+                />
 
                 <Typography variant="h6" sx={{ mb: 1 }}>
                     Correo electrónico

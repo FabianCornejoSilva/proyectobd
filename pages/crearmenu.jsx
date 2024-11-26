@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import FormularioProducto from '../components/crearmenu/FormularioProducto';
 import ListaProductos from '../components/crearmenu/ListaProductos';
 import FormularioCategoria from '../components/crearmenu/FormularioCategoria';
-import { Container, Grid, Box, Divider } from '@mui/material';
+import { Container, Grid, Box, Divider, Button } from '@mui/material';
+import Link from 'next/link';
+import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 
 const commonBoxStyles = {
     backgroundColor: '#ffffff',
@@ -221,9 +223,11 @@ const CrearMenu = () => {
                 backgroundColor: '#000000',
                 color: 'white',
                 padding: '15px',
-                textAlign: 'center',
                 zIndex: 1000,
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
             }}>
                 <h1 style={{ 
                     margin: 0,
@@ -232,6 +236,23 @@ const CrearMenu = () => {
                 }}>
                     Panel de Creación de Menú
                 </h1>
+
+                <Link href="/pedir" passHref>
+                    <Button
+                        variant="contained"
+                        startIcon={<RestaurantMenuIcon />}
+                        sx={{
+                            backgroundColor: 'white',
+                            color: 'black',
+                            '&:hover': {
+                                backgroundColor: '#e0e0e0',
+                            },
+                            fontWeight: 'bold'
+                        }}
+                    >
+                        Ver Menú
+                    </Button>
+                </Link>
             </div>
 
             <Container style={{ 
