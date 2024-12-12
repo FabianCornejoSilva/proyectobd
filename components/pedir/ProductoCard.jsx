@@ -26,7 +26,7 @@ const ProductoCard = ({ producto, agregarAlCarrito }) => {
         >
             <Box
                 component="img"
-                src={`/imagenes/menu/${producto.imagen}`}
+                src={producto.imagen}
                 alt={producto.nombre}
                 sx={{
                     width: '100%',

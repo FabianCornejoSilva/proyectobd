@@ -38,7 +38,7 @@ const ListaProductos = ({ productos, categorias, onDelete, onToggleMenu, onEdit 
             descripcion: producto.descripcion,
             imagen: null
         });
-        setPreviewImage(`/imagenes/menu/${producto.imagen}`);
+        setPreviewImage(producto.imagen);
         setEditModalOpen(true);
     };
 
@@ -171,7 +171,7 @@ const ListaProductos = ({ productos, categorias, onDelete, onToggleMenu, onEdit 
                                         position: 'relative'
                                     }}>
                                         <img 
-                                            src={`/imagenes/menu/${producto.imagen}`} 
+                                            src={producto.imagen} 
                                             alt={producto.nombre} 
                                             style={{ 
                                                 maxWidth: '100%', 

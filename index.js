@@ -2,46 +2,38 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const mime = require('mime-types'); // Para obtener el Content-Type
+const { S3Client, PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 require('dotenv').config();
 
 const app = express();
 const port = 3000;
 
-// Configuración de multer para manejar la subida de archivos
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, path.join(__dirname, 'public/imagenes/menu'));
+// Configuración de S3
+const s3 = new S3Client({
+    region: process.env.AWS_REGION,
+    credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
     },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + '-' + file.originalname);
-    }
 });
 
-const upload = multer({ 
-    storage: storage,
-    fileFilter: function (req, file, cb) {
-        if (!file) {
-            return cb(null, false);
-        }
-        cb(null, true);
-    }
-});
+// Configuración de multer para manejar la subida de archivos
+const storage = multer.memoryStorage(); // Usar memoria para almacenar archivos temporalmente
+const upload = multer({ storage: storage });
 
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public')); 
 
 // Conectar a MongoDB
 mongoose.connect(process.env.MONGODB_URI)
     .then(() => {
         console.log("Conectado a MongoDB");
-    }).catch(err => {
+    })
+    .catch(err => {
         console.error("Error al conectar a MongoDB:", err);
     });
-
 
 // Definición del modelo para Productos
 const Producto = mongoose.model('Producto', new mongoose.Schema({
@@ -50,10 +42,10 @@ const Producto = mongoose.model('Producto', new mongoose.Schema({
     precio: Number,
     categoria: {
         id: { type: mongoose.Schema.Types.ObjectId, ref: 'Categoria' },
-        nombre: String 
+        nombre: String
     },
     imagen: String,
-    enMenu: { type: Boolean, default: false } 
+    enMenu: { type: Boolean, default: false }
 }));
 
 // Definición del modelo para Categorías
@@ -64,7 +56,7 @@ const Categoria = mongoose.model('Categoria', new mongoose.Schema({
 // Obtener todas las categorías
 app.get('/categorias', async (req, res) => {
     try {
-        const categorias = await Categoria.find(); // Obtener todas las categorías
+        const categorias = await Categoria.find();
         res.json(categorias);
     } catch (err) {
         console.error(err);
@@ -100,7 +92,7 @@ app.delete('/categorias/:id', async (req, res) => {
 // Obtener todos los productos
 app.get('/productos', async (req, res) => {
     try {
-        const productos = await Producto.find(); // Ya no necesitas .populate() porque tienes el nombre de la categoría en el producto
+        const productos = await Producto.find();
         res.json(productos);
     } catch (err) {
         console.error(err);
@@ -114,24 +106,35 @@ app.post('/productos', upload.single('imagen'), async (req, res) => {
         const { nombre, descripcion, precio, categoriaNombre } = req.body;
 
         if (!req.file) {
-            return res.status(400).json({ 
-                error: 'Se requiere una imagen para el producto' 
-            });
+            return res.status(400).json({ error: 'Se requiere una imagen para el producto' });
         }
 
-        const imagen = req.file.filename;
-        
-        // Encontrar la categoría
+        // Subir la imagen a S3
+        const uploadParams = {
+            Bucket: process.env.AWS_S3_BUCKET_NAME,
+            Key: Date.now().toString() + '-' + req.file.originalname,
+            Body: req.file.buffer,
+            ACL: 'public-read',
+            ContentType: mime.lookup(req.file.originalname) || 'application/octet-stream'
+        };
+        const command = new PutObjectCommand(uploadParams);
+        await s3.send(command);
+
+        // Guardar la URL completa en la base de datos
+        const imagenUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${uploadParams.Key}`;
+
+        // Buscar la categoría
         const categoria = await Categoria.findOne({ nombre_categoria: categoriaNombre });
         if (!categoria) {
             return res.status(400).json({ error: 'Categoría no encontrada' });
         }
 
+        // Crear el producto
         const nuevoProducto = new Producto({
             nombre,
             descripcion,
             precio: Number(precio),
-            imagen,
+            imagen: imagenUrl,
             categoria: {
                 id: categoria._id,
                 nombre: categoria.nombre_categoria
@@ -147,36 +150,32 @@ app.post('/productos', upload.single('imagen'), async (req, res) => {
     }
 });
 
-// Eliminar un producto
+// Eliminar un producto y su imagen de S3
 app.delete('/productos/:id', async (req, res) => {
     try {
-        // Busca el producto en la base de datos
         const producto = await Producto.findById(req.params.id);
         if (!producto) {
             return res.status(404).send('Producto no encontrado');
         }
 
-        // Elimina el producto de la base de datos
-        await Producto.findByIdAndDelete(req.params.id);
-        
-        // Construir la ruta de la imagen a eliminar
-        const imagePath = path.join(__dirname, 'public', 'imagenes','menu', producto.imagen);
+        // Eliminar la imagen de S3
+        const key = producto.imagen.split('/').pop(); // Obtén el Key desde la URL
+        const deleteParams = {
+            Bucket: process.env.AWS_S3_BUCKET_NAME,
+            Key: key
+        };
+        await s3.send(new DeleteObjectCommand(deleteParams));
 
-        // Eliminar el archivo de imagen
-        fs.unlink(imagePath, (err) => {
-            if (err) {
-                console.error("Error al eliminar la imagen:", err);
-                return res.status(500).json({ message: "Error al eliminar la imagen" });
-            }
-            return res.status(200).json({ message: "Producto y su imagen eliminados correctamente" });
-        });
+        // Eliminar el producto de la base de datos
+        await Producto.findByIdAndDelete(req.params.id);
+
+        res.send('Producto eliminado con éxito');
     } catch (err) {
         console.error(err);
         res.status(500).send('Error al eliminar el producto');
-    } // Aquí cerramos el bloque try-catch
-}); // Aquí cerramos el manejador de ruta
+    }
+});
 
-// Actualizar un producto
 app.patch('/productos/:id/toggleMenu', async (req, res) => {
     const { id } = req.params;
     try {
@@ -192,103 +191,57 @@ app.patch('/productos/:id/toggleMenu', async (req, res) => {
     }
 });
 
-// Agregar esta ruta en tu archivo del servidor
-app.put('/categorias/:id', async (req, res) => {
-    const { id } = req.params;
-    const { nombre_categoria } = req.body;
 
-    try {
-        // Verificar si el nuevo nombre ya existe en otra categoría
-        const categoriaExistente = await Categoria.findOne({
-            _id: { $ne: id }, // excluir la categoría actual
-            nombre_categoria: { 
-                $regex: new RegExp(`^${nombre_categoria}$`, 'i') 
-            }
-        });
 
-        if (categoriaExistente) {
-            return res.status(400).json({ 
-                error: 'Ya existe una categoría con este nombre' 
-            });
-        }
-
-        const categoriaActualizada = await Categoria.findByIdAndUpdate(
-            id,
-            { nombre_categoria },
-            { new: true }
-        );
-
-        if (!categoriaActualizada) {
-            return res.status(404).json({ 
-                error: 'Categoría no encontrada' 
-            });
-        }
-
-        res.json(categoriaActualizada);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ 
-            error: 'Error al actualizar la categoría' 
-        });
-    }
-});
-
-// Ruta PUT para actualizar productos
+// Actualizar un producto
 app.put('/productos/:id', upload.single('imagen'), async (req, res) => {
     try {
         const { id } = req.params;
         const { nombre, descripcion, precio, categoriaNombre } = req.body;
-        
-        console.log('Datos recibidos:', req.body); // Para debug
 
-        // Encontrar la categoría por nombre
-        const categoria = await Categoria.findOne({ nombre_categoria: categoriaNombre });
-        
-        const updateData = {
-            nombre,
-            descripcion,
-            precio: Number(precio),
-            categoria: {
-                id: categoria ? categoria._id : null,
-                nombre: categoriaNombre
-            }
-        };
+        const producto = await Producto.findById(id);
+        if (!producto) {
+            return res.status(404).send('Producto no encontrado');
+        }
 
-        // Verificar si hay una nueva imagen
+        let imagenUrl = producto.imagen;
+
         if (req.file) {
-            // Eliminar la imagen anterior
-            const productoAnterior = await Producto.findById(id);
-            if (productoAnterior && productoAnterior.imagen) {
-                const imagePath = path.join(__dirname, 'public', 'imagenes', 'menu', productoAnterior.imagen);
-                try {
-                    await fs.promises.unlink(imagePath);
-                } catch (err) {
-                    console.error("Error al eliminar la imagen anterior:", err);
-                }
-            }
-            updateData.imagen = req.file.filename;
+            // Eliminar la imagen anterior de S3
+            const key = producto.imagen.split('/').pop();
+            const deleteParams = {
+                Bucket: process.env.AWS_S3_BUCKET_NAME,
+                Key: key
+            };
+            await s3.send(new DeleteObjectCommand(deleteParams));
+
+            // Subir la nueva imagen a S3
+            const uploadParams = {
+                Bucket: process.env.AWS_S3_BUCKET_NAME,
+                Key: Date.now().toString() + '-' + req.file.originalname,
+                Body: req.file.buffer,
+                ACL: 'public-read',
+                ContentType: mime.lookup(req.file.originalname) || 'application/octet-stream'
+            };
+            const command = new PutObjectCommand(uploadParams);
+            await s3.send(command);
+
+            imagenUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${uploadParams.Key}`;
         }
 
-        console.log('Datos a actualizar:', updateData); // Para debug
+        const categoria = await Categoria.findOne({ nombre_categoria: categoriaNombre });
 
-        const productoActualizado = await Producto.findByIdAndUpdate(
-            id,
-            updateData,
-            { new: true, runValidators: true }
-        );
+        producto.nombre = nombre;
+        producto.descripcion = descripcion;
+        producto.precio = Number(precio);
+        producto.imagen = imagenUrl;
+        producto.categoria = categoria ? { id: categoria._id, nombre: categoria.nombre_categoria } : producto.categoria;
 
-        if (!productoActualizado) {
-            return res.status(404).json({ error: 'Producto no encontrado' });
-        }
-
-        console.log('Producto actualizado:', productoActualizado); // Para debug
-        res.json(productoActualizado);
-    } catch (error) {
-        console.error('Error al actualizar el producto:', error);
-        res.status(500).json({ 
-            error: 'Error al actualizar el producto',
-            details: error.message 
-        });
+        await producto.save();
+        res.json(producto);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Error al actualizar el producto');
     }
 });
 
@@ -305,6 +258,7 @@ app.use((err, req, res, next) => {
         details: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
 });
+
 
 // Manejo de proceso
 process.on('uncaughtException', (err) => {

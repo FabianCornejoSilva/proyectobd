@@ -20,15 +20,15 @@ self.__BUILD_MANIFEST = {
       "static/chunks/main.js",
       "static/chunks/pages/_error.js"
     ],
+    "/conocenos": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/conocenos.js"
+    ],
     "/crearmenu": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
       "static/chunks/pages/crearmenu.js"
-    ],
-    "/login": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/login.js"
     ],
     "/pedir": [
       "static/chunks/webpack.js",

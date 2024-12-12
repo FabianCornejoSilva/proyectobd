@@ -61,7 +61,7 @@ const Carrito = ({
                         {item.imagen && (
                             <Box sx={{ width: 50, height: 50, position: 'relative' }}>
                                 <Image
-                                    src={`/imagenes/menu/${item.imagen}`}
+                                    src={item.imagen}
                                     alt={item.nombre}
                                     width={50}
                                     height={50}
