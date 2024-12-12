@@ -4,6 +4,7 @@ const cors = require('cors');
 const multer = require('multer');
 const mime = require('mime-types'); // Para obtener el Content-Type
 const { S3Client, PutObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
+const { Pool } = require('pg'); // Importa el paquete pg
 require('dotenv').config();
 
 const app = express();
@@ -33,6 +34,26 @@ mongoose.connect(process.env.MONGODB_URI)
     })
     .catch(err => {
         console.error("Error al conectar a MongoDB:", err);
+    });
+
+// Configuración de PostgreSQL
+const pool = new Pool({
+    user: process.env.POSTGRES_USER,
+    host: process.env.POSTGRES_HOST,
+    database: process.env.POSTGRES_DB,
+    password: process.env.POSTGRES_PASSWORD,
+    port: process.env.POSTGRES_PORT,
+    ssl: {
+        rejectUnauthorized: false,
+    }
+});
+
+pool.connect()
+    .then(() => {
+        console.log("Conectado a PostgreSQL");
+    })
+    .catch(err => {
+        console.error("Error al conectar a PostgreSQL:", err);
     });
 
 // Definición del modelo para Productos
@@ -269,6 +290,66 @@ process.on('uncaughtException', (err) => {
 process.on('unhandledRejection', (err) => {
     console.error('Unhandled Rejection:', err);
     // Registrar el error pero mantener el servidor funcionando
+});
+
+// Ruta para obtener todos los usuarios
+app.get('/usuario', async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM usuario');
+        res.json(result.rows);
+    } catch (err) {
+        console.error("Error al obtener usuarios de PostgreSQL:", err);
+        res.status(500).send("Error al obtener usuarios");
+    }
+});
+
+// Ruta para agregar un nuevo usuario
+app.post('/usuario', async (req, res) => {
+    const { nombre, correo, admin, contraseña } = req.body;
+    try {
+        const result = await pool.query(
+            'INSERT INTO usuario (nombre, correo, admin, contraseña) VALUES ($1, $2, $3, $4) RETURNING *',
+            [nombre, correo, admin, contraseña]
+        );
+        res.status(201).json(result.rows[0]);
+    } catch (err) {
+        console.error("Error al agregar usuario a PostgreSQL:", err);
+        res.status(500).send("Error al agregar usuario");
+    }
+});
+
+// Ruta para editar un usuario existente
+app.put('/usuario/:id', async (req, res) => {
+    const { id } = req.params;
+    const { nombre, correo, admin } = req.body;
+    try {
+        const result = await pool.query(
+            'UPDATE usuario SET nombre = $1, correo = $2, admin = $3 WHERE id = $4 RETURNING *',
+            [nombre, correo, admin, id]
+        );
+        if (result.rows.length === 0) {
+            return res.status(404).send("Usuario no encontrado");
+        }
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error("Error al editar usuario en PostgreSQL:", err);
+        res.status(500).send("Error al editar usuario");
+    }
+});
+
+// Ruta para eliminar un usuario existente
+app.delete('/usuario/:id', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await pool.query('DELETE FROM usuario WHERE id = $1 RETURNING *', [id]);
+        if (result.rows.length === 0) {
+            return res.status(404).send("Usuario no encontrado");
+        }
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error("Error al eliminar usuario de PostgreSQL:", err);
+        res.status(500).send("Error al eliminar usuario");
+    }
 });
 
 // Iniciar el servidor

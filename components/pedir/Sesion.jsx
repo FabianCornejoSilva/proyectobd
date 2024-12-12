@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Menu, MenuItem } from '@mui/material';
+import { Box, Typography, Menu, MenuItem, Button } from '@mui/material';
 import Link from 'next/link';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -30,6 +30,22 @@ const Sesion = () => {
         window.location.reload();
     };
 
+    const buttonStyles = {
+        backgroundColor: 'white',
+        color: 'black',
+        padding: { xs: '4px 12px', sm: '8px 16px' },
+        borderRadius: '20px',
+        cursor: 'pointer',
+        transition: 'all 0.3s ease',
+        '&:hover': {
+            transform: 'scale(1.05)',
+            boxShadow: '0 0 10px rgba(255,255,255,0.3)'
+        },
+        fontSize: { xs: '0.8rem', sm: '0.9rem' },
+        fontWeight: 'bold',
+        whiteSpace: 'nowrap'
+    };
+
     return (
         <Box sx={{
             display: 'flex',
@@ -38,86 +54,36 @@ const Sesion = () => {
         }}>
             {!usuario ? (
                 <Link href="/login" passHref>
-                    <Box sx={{
-                        backgroundColor: 'white',
-                        color: 'black',
-                        padding: { xs: '4px 12px', sm: '8px 16px' },
-                        borderRadius: '20px',
-                        cursor: 'pointer',
-                        transition: 'all 0.3s ease',
-                        '&:hover': {
-                            transform: 'scale(1.05)',
-                            boxShadow: '0 0 10px rgba(255,255,255,0.3)'
-                        }
-                    }}>
-                        <Typography sx={{
-                            fontSize: { xs: '0.8rem', sm: '0.9rem' },
-                            fontWeight: 'bold',
-                            whiteSpace: 'nowrap'
-                        }}>
-                            Iniciar sesión
-                        </Typography>
-                    </Box>
+                    <Button sx={buttonStyles}>
+                        Iniciar sesión
+                    </Button>
                 </Link>
             ) : (
                 <>
                     {usuario.admin && (
                         <Link href="/crearmenu" passHref>
-                            <Box sx={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 1,
+                            <Button sx={{
+                                ...buttonStyles,
                                 backgroundColor: '#4caf50',
                                 color: 'white',
-                                padding: { xs: '4px 12px', sm: '8px 16px' },
-                                borderRadius: '20px',
-                                cursor: 'pointer',
-                                transition: 'all 0.3s ease',
                                 '&:hover': {
-                                    transform: 'scale(1.05)',
                                     boxShadow: '0 0 10px rgba(76,175,80,0.3)',
                                     backgroundColor: '#45a049'
                                 }
                             }}>
-                                <AdminPanelSettingsIcon sx={{ fontSize: '1.5rem' }} />
-                                <Typography sx={{
-                                    fontSize: { xs: '0.8rem', sm: '0.9rem' },
-                                    fontWeight: 'bold',
-                                    whiteSpace: 'nowrap'
-                                }}>
-                                    Panel Admin
-                                </Typography>
-                            </Box>
+                                <AdminPanelSettingsIcon sx={{ fontSize: '1.5rem', marginRight: '8px' }} />
+                                Panel Admin
+                            </Button>
                         </Link>
                     )}
 
-                    <Box
+                    <Button
                         onClick={handleClick}
-                        sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1,
-                            backgroundColor: 'white',
-                            color: 'black',
-                            padding: { xs: '4px 12px', sm: '8px 16px' },
-                            borderRadius: '20px',
-                            cursor: 'pointer',
-                            transition: 'all 0.3s ease',
-                            '&:hover': {
-                                transform: 'scale(1.05)',
-                                boxShadow: '0 0 10px rgba(255,255,255,0.3)'
-                            }
-                        }}
+                        sx={buttonStyles}
                     >
-                        <AccountCircleIcon sx={{ fontSize: '1.5rem' }} />
-                        <Typography sx={{
-                            fontSize: { xs: '0.8rem', sm: '0.9rem' },
-                            fontWeight: 'bold',
-                            whiteSpace: 'nowrap'
-                        }}>
-                            {usuario.name}
-                        </Typography>
-                    </Box>
+                        <AccountCircleIcon sx={{ fontSize: '1.5rem', marginRight: '8px' }} />
+                        {usuario.name}
+                    </Button>
 
                     <Menu
                         anchorEl={anchorEl}
@@ -153,8 +119,13 @@ const Sesion = () => {
                     </Menu>
                 </>
             )}
+            <Link href="/conocenos" passHref>
+                <Button sx={buttonStyles}>
+                    Conócenos
+                </Button>
+            </Link>
         </Box>
     );
 };
 
-export default Sesion; 
+export default Sesion;

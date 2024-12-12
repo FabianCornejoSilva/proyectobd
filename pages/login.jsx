@@ -66,6 +66,7 @@ const Login = () => {
                                 borderRadius: '20px',
                                 cursor: 'pointer',
                                 transition: 'all 0.3s ease',
+                                fontWeight: 'bold', // Make text bold
                                 '&:hover': {
                                     transform: 'scale(1.05)',
                                     boxShadow: '0 0 10px rgba(255,255,255,0.3)'
@@ -83,6 +84,7 @@ const Login = () => {
                                 borderRadius: '20px',
                                 cursor: 'pointer',
                                 transition: 'all 0.3s ease',
+                                fontWeight: 'bold', // Make text bold
                                 '&:hover': {
                                     transform: 'scale(1.05)',
                                     boxShadow: '0 0 10px rgba(255,255,255,0.3)'
@@ -119,9 +121,8 @@ const Login = () => {
                             onClick={() => cambiarFormulario(false)}
                             sx={{
                                 flex: 1,
-                                padding: '15px',
-                                borderRadius: 0,
-                                borderRight: '1px solid #e0e0e0',
+                                padding: { xs: '4px 12px', sm: '8px 16px' },
+                                borderRadius: '20px',
                                 backgroundColor: !mostrarRegistro ? 'black' : 'transparent',
                                 color: !mostrarRegistro ? 'white' : 'black',
                                 '&:hover': {
@@ -129,7 +130,12 @@ const Login = () => {
                                 },
                                 transition: 'all 0.3s ease',
                                 fontSize: '1rem',
-                                fontWeight: 'bold'
+                                fontWeight: 'bold',
+                                cursor: 'pointer',
+                                '&:hover': {
+                                    transform: 'scale(1.05)',
+                                    boxShadow: '0 0 10px rgba(255,255,255,0.3)'
+                                }
                             }}
                         >
                             Iniciar Sesión
@@ -138,8 +144,8 @@ const Login = () => {
                             onClick={() => cambiarFormulario(true)}
                             sx={{
                                 flex: 1,
-                                padding: '15px',
-                                borderRadius: 0,
+                                padding: { xs: '4px 12px', sm: '8px 16px' },
+                                borderRadius: '20px',
                                 backgroundColor: mostrarRegistro ? 'black' : 'transparent',
                                 color: mostrarRegistro ? 'white' : 'black',
                                 '&:hover': {
@@ -147,7 +153,12 @@ const Login = () => {
                                 },
                                 transition: 'all 0.3s ease',
                                 fontSize: '1rem',
-                                fontWeight: 'bold'
+                                fontWeight: 'bold',
+                                cursor: 'pointer',
+                                '&:hover': {
+                                    transform: 'scale(1.05)',
+                                    boxShadow: '0 0 10px rgba(255,255,255,0.3)'
+                                }
                             }}
                         >
                             Registrarse
@@ -215,4 +226,4 @@ const Login = () => {
     );
 };
 
-export default Login; 
+export default Login;

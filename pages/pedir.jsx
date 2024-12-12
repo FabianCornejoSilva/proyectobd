@@ -321,28 +321,7 @@ const Pedir = () => {
                         }}>
                             <Sesion />
                             
-                            <Link href="/conocenos" passHref>
-                                <Box sx={{
-                                    backgroundColor: 'white',
-                                    color: 'black',
-                                    padding: { xs: '4px 12px', sm: '8px 16px' },
-                                    borderRadius: '20px',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.3s ease',
-                                    '&:hover': {
-                                        transform: 'scale(1.05)',
-                                        boxShadow: '0 0 10px rgba(255,255,255,0.3)'
-                                    }
-                                }}>
-                                    <Typography sx={{
-                                        fontSize: { xs: '0.8rem', sm: '0.9rem' },
-                                        fontWeight: 'bold',
-                                        whiteSpace: 'nowrap'
-                                    }}>
-                                        CONÓCENOS
-                                    </Typography>
-                                </Box>
-                            </Link>
+                            
                         </Box>
                     </Box>
 
@@ -353,57 +332,9 @@ const Pedir = () => {
                         gap: 2,
                         flex: '0 1 auto',
                         maxWidth: '1000px',
-                        marginLeft: '300px'
+                        marginLeft: 'auto', // Adjusted to center the elements
+                        marginRight: 'auto' // Adjusted to center the elements
                     }}>
-                        {/* Barra de búsqueda */}
-                        <ClickAwayListener onClickAway={handleClickAway}>
-                            <Box
-                                sx={{
-                                    backgroundColor: 'white',
-                                    borderRadius: '20px',
-                                    padding: showSearch ? '8px 16px' : '4px 8px',
-                                    width: showSearch ? '300px' : 'auto',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: showSearch ? 1.5 : 0.5,
-                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                                    transition: 'all 0.3s ease-in-out',
-                                    minWidth: showSearch ? '40px' : '35px',
-                                    height: showSearch ? '45px' : '35px',
-                                    marginRight: '9px'
-                                }}
-                            >
-                                <SearchIcon 
-                                    sx={{ 
-                                        color: 'gray',
-                                        cursor: 'pointer',
-                                        fontSize: showSearch ? '1.5rem' : '1.3rem'
-                                    }} 
-                                    onClick={handleSearchClick}
-                                />
-
-                                {showSearch && (
-                                    <TextField
-                                        variant="standard"
-                                        placeholder="Buscar productos..."
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        autoFocus
-                                        InputProps={{
-                                            disableUnderline: true,
-                                        }}
-                                        sx={{
-                                            flex: 1,
-                                            '& input': {
-                                                padding: '4px 0',
-                                                fontSize: '1rem'
-                                            }
-                                        }}
-                                    />
-                                )}
-                            </Box>
-                        </ClickAwayListener>
-
                         {/* Categorías */}
                         <Box 
                             sx={{ 
@@ -477,6 +408,55 @@ const Pedir = () => {
                                 ))}
                             </Box>
                         </Box>
+
+                        {/* Barra de búsqueda */}
+                        <ClickAwayListener onClickAway={handleClickAway}>
+                            <Box
+                                sx={{
+                                    backgroundColor: 'white',
+                                    borderRadius: '20px',
+                                    padding: showSearch ? '8px 16px' : '4px 8px',
+                                    width: showSearch ? '300px' : 'auto',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: showSearch ? 1.5 : 0.5,
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                    transition: 'all 0.3s ease-in-out',
+                                    minWidth: showSearch ? '40px' : '35px',
+                                    height: showSearch ? '45px' : '35px',
+                                    marginLeft: '9px' // Adjusted to move the search icon to the right
+                                }}
+                            >
+                                <SearchIcon 
+                                    sx={{ 
+                                        color: 'gray',
+                                        cursor: 'pointer',
+                                        fontSize: showSearch ? '1.5rem' : '1.3rem'
+                                    }} 
+                                    onClick={handleSearchClick}
+                                />
+
+                                {showSearch && (
+                                    <TextField
+                                        variant="standard"
+                                        placeholder="Buscar productos..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        autoFocus
+                                        InputProps={{
+                                            disableUnderline: true,
+                                        }}
+                                        sx={{
+                                            flex: 1,
+                                            '& input': {
+                                                padding: '4px 0',
+                                                fontSize: '1rem'
+                                            }
+                                        }}
+                                    />
+                                )}
+                            </Box>
+                        </ClickAwayListener>
                     </Box>
 
                     {/* Total y carrito */}
