@@ -2,7 +2,14 @@ import { useEffect, useState } from 'react';
 import FormularioProducto from '../components/crearmenu/FormularioProducto';
 import ListaProductos from '../components/crearmenu/ListaProductos';
 import FormularioCategoria from '../components/crearmenu/FormularioCategoria';
-import { Container, Grid, Box, Divider } from '@mui/material';
+import { Container, Grid, Box, Divider, Button, List, ListItem, ListItemText, ListItemIcon, IconButton, TextField, Switch, FormControlLabel } from '@mui/material';
+import Link from 'next/link';
+import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import SaveIcon from '@mui/icons-material/Save';
+import CancelIcon from '@mui/icons-material/Cancel';
 
 const commonBoxStyles = {
     backgroundColor: '#ffffff',
@@ -25,6 +32,9 @@ const commonTitleStyles = {
 const CrearMenu = () => {
     const [productos, setProductos] = useState([]);
     const [categorias, setCategorias] = useState([]);
+    const [usuarios, setUsuarios] = useState([]); // Nuevo estado para los usuarios
+    const [editingUser, setEditingUser] = useState(null); // Estado para el usuario en edición
+    const [newUser, setNewUser] = useState({ nombre: '', correo: '', admin: false, contraseña: '' }); // Estado para el nuevo usuario
 
     const fetchCategorias = async () => {
         try {
@@ -54,9 +64,24 @@ const CrearMenu = () => {
         }
     };
 
+    const fetchUsuarios = async () => {
+        try {
+            const response = await fetch('http://localhost:3000/usuario');
+            if (response.ok) {
+                const data = await response.json();
+                setUsuarios(data);
+            } else {
+                console.error('Error al obtener los usuarios');
+            }
+        } catch (error) {
+            console.error('Error al obtener los usuarios:', error);
+        }
+    };
+
     useEffect(() => {
         fetchCategorias();
         fetchProductos();
+        fetchUsuarios(); // Llamar a la función para obtener usuarios
     }, []);
 
     const handleSubmitProducto = async (formData) => {
@@ -211,6 +236,69 @@ const CrearMenu = () => {
         checkServerConnection();
     }, []);
 
+    const handleDeleteUsuario = async (id) => {
+        try {
+            const response = await fetch(`http://localhost:3000/usuario/${id}`, {
+                method: 'DELETE',
+            });
+
+            if (response.ok) {
+                setUsuarios(usuarios.filter(usuario => usuario.id !== id));
+            } else {
+                console.error('Error al eliminar el usuario');
+            }
+        } catch (error) {
+            console.error('Error al eliminar el usuario:', error);
+        }
+    };
+
+    const handleEditUsuario = (usuario) => {
+        setEditingUser(usuario);
+    };
+
+    const handleSaveUsuario = async () => {
+        try {
+            const response = await fetch(`http://localhost:3000/usuario/${editingUser.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(editingUser),
+            });
+
+            if (response.ok) {
+                setUsuarios(usuarios.map(usuario => (usuario.id === editingUser.id ? editingUser : usuario)));
+                setEditingUser(null);
+            } else {
+                console.error('Error al editar el usuario');
+            }
+        } catch (error) {
+            console.error('Error al editar el usuario:', error);
+        }
+    };
+
+    const handleAddUsuario = async () => {
+        try {
+            const response = await fetch('http://localhost:3000/usuario', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(newUser),
+            });
+
+            if (response.ok) {
+                const addedUser = await response.json();
+                setUsuarios([...usuarios, addedUser]);
+                setNewUser({ nombre: '', correo: '', admin: false, contraseña: '' });
+            } else {
+                console.error('Error al agregar el usuario');
+            }
+        } catch (error) {
+            console.error('Error al agregar el usuario:', error);
+        }
+    };
+
     return (
         <div style={{ backgroundColor: '#ffffff' }}>
             <div style={{
@@ -221,17 +309,37 @@ const CrearMenu = () => {
                 backgroundColor: '#000000',
                 color: 'white',
                 padding: '15px',
-                textAlign: 'center',
                 zIndex: 1000,
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
             }}>
                 <h1 style={{ 
                     margin: 0,
                     fontSize: '1.8rem',
                     fontWeight: 'bold'
                 }}>
-                    Panel de Creación de Menú
+                    Panel de Administrador
                 </h1>
+
+                <Link href="/pedir" passHref>
+                    <Button
+                        variant="contained"
+                        startIcon={<RestaurantMenuIcon />}
+                        sx={{
+                            backgroundColor: 'white',
+                            color: 'black',
+                            '&:hover': {
+                                backgroundColor: '#e0e0e0',
+                            },
+                            fontWeight: 'bold',
+                            borderRadius: '20px' // Añadir esta línea para redondear el botón
+                        }}
+                    >
+                        Ver Menú
+                    </Button>
+                </Link>
             </div>
 
             <Container style={{ 
@@ -280,6 +388,106 @@ const CrearMenu = () => {
                         onToggleMenu={handleToggleMenu}
                         onEdit={handleEditProducto}
                     />
+                </Box>
+
+                <Box sx={{ 
+                    marginTop: 4,
+                    ...commonBoxStyles
+                }}>
+                    <h2 style={commonTitleStyles}>
+                        Usuarios
+                    </h2>
+                    <List>
+                        {usuarios.map(usuario => (
+                            <ListItem key={usuario.id}>
+                                <ListItemIcon>
+                                    <AccountCircleIcon />
+                                </ListItemIcon>
+                                <ListItemText
+                                    primary={editingUser && editingUser.id === usuario.id ? (
+                                        <>
+                                            <TextField
+                                                label="Nombre"
+                                                value={editingUser.nombre}
+                                                onChange={(e) => setEditingUser({ ...editingUser, nombre: e.target.value })}
+                                            />
+                                            <TextField
+                                                label="Correo"
+                                                value={editingUser.correo}
+                                                onChange={(e) => setEditingUser({ ...editingUser, correo: e.target.value })}
+                                            />
+                                            <FormControlLabel
+                                                control={
+                                                    <Switch
+                                                        checked={editingUser.admin}
+                                                        onChange={(e) => setEditingUser({ ...editingUser, admin: e.target.checked })}
+                                                    />
+                                                }
+                                                label="Admin"
+                                            />
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span>{usuario.nombre}</span>
+                                            <br />
+                                            <span>{usuario.correo}</span>
+                                            <br />
+                                            <span>{usuario.admin ? 'Admin' : 'Usuario'}</span>
+                                        </>
+                                    )}
+                                />
+                                {editingUser && editingUser.id === usuario.id ? (
+                                    <>
+                                        <IconButton onClick={handleSaveUsuario}>
+                                            <SaveIcon />
+                                        </IconButton>
+                                        <IconButton onClick={() => setEditingUser(null)}>
+                                            <CancelIcon />
+                                        </IconButton>
+                                    </>
+                                ) : (
+                                    <>
+                                        <IconButton onClick={() => handleEditUsuario(usuario)}>
+                                            <EditIcon />
+                                        </IconButton>
+                                        <IconButton onClick={() => handleDeleteUsuario(usuario.id)}>
+                                            <DeleteIcon />
+                                        </IconButton>
+                                    </>
+                                )}
+                            </ListItem>
+                        ))}
+                    </List>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 4 }}>
+                        <TextField
+                            label="Nombre"
+                            value={newUser.nombre}
+                            onChange={(e) => setNewUser({ ...newUser, nombre: e.target.value })}
+                        />
+                        <TextField
+                            label="Correo"
+                            value={newUser.correo}
+                            onChange={(e) => setNewUser({ ...newUser, correo: e.target.value })}
+                        />
+                        <TextField
+                            label="Contraseña"
+                            type="password"
+                            value={newUser.contraseña}
+                            onChange={(e) => setNewUser({ ...newUser, contraseña: e.target.value })}
+                        />
+                        <FormControlLabel
+                            control={
+                                <Switch
+                                    checked={newUser.admin}
+                                    onChange={(e) => setNewUser({ ...newUser, admin: e.target.checked })}
+                                />
+                            }
+                            label="Admin"
+                        />
+                        <Button variant="contained" onClick={handleAddUsuario}>
+                            Agregar Usuario
+                        </Button>
+                    </Box>
                 </Box>
             </Container>
         </div>

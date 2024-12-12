@@ -2,7 +2,7 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/pedir": "pages/pedir.js",
   "/crearmenu": "pages/crearmenu.js",
-  "/conocenos": "pages/conocenos.js"
+  "/pedir": "pages/pedir.js",
+  "/login": "pages/login.js"
 }
